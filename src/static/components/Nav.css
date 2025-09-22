@@ -1,0 +1,302 @@
+/* Base styles */
+.App-nav {
+  background-color: white;
+  height: 12%;
+  width: 100%;
+  position: relative;
+  top: 0;
+  border: none;
+  border-width: 0;
+  z-index: 1000;
+}
+hr{
+  display: none;
+}
+.App-nav a {
+  display: inline-flex;
+  color: rgb(0, 0, 0);
+  text-align: center;
+  padding: 12px 6px;
+  text-decoration: none;
+}
+
+.App-nav a:hover {
+  text-decoration: underline;
+}
+
+.App-nav a.active {
+  color: white;
+}
+
+.textnav-size {
+  line-height: 80px;
+  white-space: normal !important;
+  font-weight: bold;
+  font-size: 17px;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.App-logo {
+  padding-top: 20px;
+  padding-left: 10px;
+  float: left;
+  width: 5%;
+  height: 50%;
+}
+
+.navLogoMobile{
+  display: none;
+}
+
+.navCompanyName {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  padding-right: 200px;
+  font-size: 28px;
+}
+
+.boxNav {
+  top: 0;
+  border: none;
+  border-width: 0;
+  position: fixed;
+  z-index: 1;
+
+}
+
+.Order-list {
+  justify-content: center;
+}
+
+/* Dropdown container */
+.dropdown-wrapper {
+  position: relative;
+  display: inline;
+}
+
+/* Dropdown toggle */
+.dropdown-toggle {
+  cursor: pointer;
+  line-height: 20px;
+    white-space: normal !important;
+    font-weight: bold;
+    font-size: 18px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  background: white;
+  top: 120%;
+  left: 67%;
+  transform: translateX(-50%);
+  min-width: 120px;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+  z-index: 999;
+  line-height: 20px;
+  white-space: normal !important;
+ font-weight: bold;
+ font-size: 18px;
+ font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+text-align: center;
+}
+
+.dropdown-menu button{
+  line-height: 20px;
+    white-space: normal !important;
+    font-weight: bold;
+    font-size: 18px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+
+}
+
+/* Dropdown item links */
+.dropdown-item {
+  padding: 8px 12px;
+  text-decoration: none;
+  color: black;
+  text-align: center;
+}
+
+.dropdown-item:hover {
+  background: #f1f1f1;
+}
+
+
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .navLogoMobile{
+    display: flex;
+  }
+
+  .navLogoWeb{
+    display: none;
+  }
+
+  .App-nav {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative; 
+  }
+
+  .App-logo {
+    width: 20%;
+    margin-bottom: 10px
+  }
+
+  .navCompanyName {
+    padding-right: 0;
+    font-size: 30px;
+    margin-bottom: 10px;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  }
+
+  .menu-toggle {
+    position: fixed; 
+    top: 10px; 
+    left: 10px; 
+    display: block;
+    cursor: pointer;
+    z-index: 1100; 
+    border-width: 1px;
+    border-color: gray;
+    border-style: solid;
+    padding: 3px;
+  }
+
+  .menu-toggle .bar1,
+  .menu-toggle .bar2,
+  .menu-toggle .bar3 {
+    width: 35px;
+    height: 5px;
+    background-color: #333;
+    margin: 6px 0;
+    transition: 0.4s;
+  }
+
+  .menu-toggle.change .bar1 {
+    transform: translate(0, 11px) rotate(45deg);
+  }
+
+  .menu-toggle.change .bar2 {
+    opacity: 0;
+  }
+
+  .menu-toggle.change .bar3 {
+    transform: translate(0, -11px) rotate(-45deg);
+  }
+
+  .nav-links{
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    position: relative; 
+    top: 9px; 
+    left: 0; 
+    background-color: rgb(255, 255, 255); 
+    width: 100%;
+    z-index: 1000;
+    
+  }
+
+  .nav-links.show {
+    display: flex;
+  }
+
+  .Order-list {
+    width: 100%;
+    text-align: left;
+    margin: 0;
+    padding: 0px; 
+  }
+
+  .textnav-size {
+    line-height: 20px;
+    white-space: normal !important;
+    font-weight: bold;
+    font-size: 18px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  }
+  hr{
+    display: block;
+   width: 190px;
+   border: 1px thin rgb(255, 253, 253);
+   color: grey;
+   margin: 0;
+   padding: 0;
+  }
+
+  /* Dropdown container */
+.dropdown {
+  position: relative;
+}
+
+/* Dropdown toggle */
+.dropdown-toggle {
+  display: none;
+  cursor: pointer;
+  line-height: 20px;
+    white-space: normal !important;
+    font-weight: bold;
+    font-size: 18px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+
+  }
+
+  .Order-list.dropdown-wrapper{
+    display: block;
+    flex-direction: column;
+    justify-self: center;
+    left: 41%;
+  }
+
+/* Dropdown menu */
+.dropdown-menu {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  background: white;
+  top: 100%;
+  left: 10%;
+  transform: translateX(-50%);
+  min-width: 120px;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+  z-index: 999;
+  line-height: 20px;
+    white-space: normal !important;
+    font-weight: bold;
+    font-size: 18px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    text-align: center;
+}
+
+.dropdown-menu button{
+  line-height: 20px;
+    white-space: normal !important;
+    font-weight: bold;
+    font-size: 18px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+/* Dropdown item links */
+.dropdown-item {
+  padding: 8px 12px;
+  text-decoration: none;
+  color: black;
+}
+
+.dropdown-item:hover {
+  background: #f1f1f1;
+}
+
+}
+

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ancar Motors Inc.</title>
+    <meta
+      name="description"
+      content="Ancar Motors Inc. - Your trusted car dealer, used truck seller, auto repair shop, and vehicle financing in Quezon City. Best auto dealership for trucks, cars, and auto services."
+    />
+    <meta
+      name="keywords"
+      content="ancar, ancar motors, ancar motors inc, truck dealer, auto repair, used trucks, vehicle sales, car dealership, auto services, auto parts, auto financing, Quezon City"
+    />
+    <meta name="robots" content="index, follow" />
+
+    <!-- ✅ Commented out Google Analytics & GTM for local testing -->
+    <!-- Google Analytics -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S79TNK2T36"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-S79TNK2T36");
+    </script>
+    -->
+
+    <!-- Google Tag Manager -->
+    <!--
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-NPC5K7SM");
+    </script>
+    -->
+
+    <!-- Social meta tags -->
+    <meta property="og:title" content="Ancar Motors Inc." />
+    <meta
+      property="og:description"
+      content="Ancar Motors Inc. Dealer - Your destination for high-quality trucks and services. Discover great deals and explore our extensive inventory."
+    />
+    <meta property="og:image" content="/AncarLogo.png" />
+    <meta property="og:url" content="http://localhost:5173" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ancar Motors Inc." />
+    <meta
+      name="twitter:description"
+      content="Ancar Motors Inc. Dealer - Your source for premium trucks and exceptional services. Browse our selection and find the perfect truck for you."
+    />
+    <meta name="twitter:image" content="/AncarLogo.png" />
+    <link rel="icon" href="/AncarLogo.png" />
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Ancar Motors Inc.",
+        "url": "http://localhost:5173",
+        "logo": "/AncarLogo.png",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Ground Floor, Azure Business Center, 1197-A Epifanio de los Santos Ave",
+          "addressLocality": "Quezon City",
+          "addressRegion": "Metro Manila",
+          "postalCode": "1105",
+          "addressCountry": "Philippines"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!-- ✅ No GTM iframe for local -->
+    <div id="root"></div>
+    <script type="module" src="src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,646 @@
+.parallaxInventory {
+  background-image: url("/src/assets/media/background.6f5a58ea9a57050f0323.jpg");
+  min-height: 20vh;
+  min-width: 100vh;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  margin-top: 100px;
+  z-index: 0;
+}
+.inventoryHeaderImageGalleryDetailsContainer{
+  color: white; 
+  text-align: center; 
+  background-color: black; 
+  text-indent:100px; 
+  padding-left:100px; 
+  padding-right:100px; 
+  font-size: 25px;
+}
+.InventoryHeaderImageContainer{
+  padding-top: 1px;
+  padding-bottom: 60px;
+  position:absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: transparent;
+}
+
+.InventoryHeaderImageContainerButton button{
+  float: right;
+  position:relative;
+  z-index: 4;
+  margin-right: 20px;
+  margin-top: 10px;
+  background-color: black;
+  color: white;
+  padding: 0;
+  width: 50px;
+  font-size: 25px;
+  border-color: white;
+}
+.InventoryHeaderImageContainerButton button:hover {
+  background-color: white; 
+  color: black;
+  font-weight: solid;
+  border-color: grey;
+
+}
+
+.inventoryContainer{
+  text-align: center;
+  top:0;
+  padding-top:100px;
+    background-color: rgba(7, 57, 150, 0.2); 
+  padding-bottom: 124px;
+
+
+  }
+  
+.inventoryHeader{
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+font-size: 60px;
+color: white;
+font-weight: 600;
+text-shadow: #000000 2px 2px 5px;
+}
+
+.inventoryDetails{
+  font-family: sans-serif;
+  font-size: 16px;
+  color: white;
+  font-weight: normal;
+  text-shadow: #000000 2px 3px 2.5px;
+  }
+
+  .inventoryTruckTable {
+    padding-top: 0px;
+    background-color: white;
+    table-layout: auto;
+    width: 100%;
+  }
+
+  .galleryOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+  padding: 900px 120px;
+
+  box-sizing: border-box;
+  z-index: 9999; /* make sure it's above everything */
+}
+
+.closeGallery {
+  position: absolute;
+  top: 20px;
+  right: 40px;
+  font-size: 2rem;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  z-index: 10000;
+}
+
+.inventoryHeaderImageGalleryDetailsContainer {
+  margin-top: 20px;
+  color: white;
+  max-width: 800px;
+  text-align: center;
+}
+
+.truckOrderFormContainer {
+  padding-bottom: 200px;
+}
+
+.truckLink {
+  color: rgb(34, 34, 34);
+  text-decoration: none;
+}
+
+.truckLink:hover h1, .truckLink:hover h2 {
+  color: rgb(0, 0, 0);
+  transition: transform 0.3s ease-out;
+  transform: scale(1.20);
+} 
+
+.inventoryTruckDetails {
+font-size: large;
+color: rgb(0, 22, 122);
+}
+
+  @media (max-width: 768px) {
+    .inventoryTruckTable {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+  
+  .inventoryTruckTable td {
+    width: calc(33.33% - 20px);
+    padding: 20px;
+    text-align: center;
+  }
+  
+.inventoryTruckStyle{
+  border-width: 1px;
+  border-color: grey;
+  cursor: pointer;
+  border-radius: 20%;
+}
+
+  .inventoryTruckTable .inventoryTruckStyle {
+    width: 80%;
+    height: 80%;
+    margin-bottom: 2px;
+  }
+
+  .inventoryTruckPrice h2 {
+    margin: 0; 
+    padding: 0;
+  }
+
+  
+
+  @media (max-width: 768px) {
+    .inventoryTruckTable .inventoryTruckStyle {
+      width: 760%;
+      height: auto;
+    }
+  }
+  .inventoryTruckName{
+    font-size: 20px;
+    text-align: center;
+    font-weight: bold;
+    font-family: Arial;
+  }
+
+  @media (max-width: 768px) {
+   .inventoryTruckTable .inventoryTruckName {
+      font-size: 36px;
+      font-weight: bold;
+      font-family: Arial;
+      text-align: center;
+    }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .modal-header h1 {
+    margin: auto;
+  }
+  
+  .image-container {
+    text-align: center;
+  }
+  
+  .image-container img {
+    max-width: calc(100% - 40px);
+  }
+  
+  .gallery-nav {
+    position: relative;
+    
+  }
+  
+  .gallery-nav button {
+    position: absolute;
+    top: calc(50% - 20px);
+  }
+  
+  .dots {
+    display: flex;
+  }
+  
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ccc;
+      margin-right: 5px;
+  }
+  
+  .active.dot {
+      background-color: #333;
+  }
+
+  .image-gallery-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    
+  }
+  
+  .image-gallery-container button {
+    background-color: #fff;
+    border: none;
+    padding: 5px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .invetoryCurveContainer{
+    padding-top: 100px;
+    background-color: rgb(255, 255, 255);
+  }
+
+  .inventoryMakeButtonContainer{
+    padding-top: 30px;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+  }
+  .inventoryMakeImage{
+    width: 30%;
+    height: 100%;
+    background-color: white;
+    margin-left: 50px;
+  }
+
+   .inventoryMakeImageActive{
+    width: 30%;
+    height: 100%;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    justify-self: center;
+   }
+
+.inventoryReturnButton{
+  background: none;
+  font-size: large;
+  font-weight: bold;
+  display: block;
+  margin: 20px auto;
+  border-radius: 30px;
+  padding: 10px 20px;
+  
+
+}
+  .inventoryNoResults {
+  text-align: center;
+  margin: 50px 0;
+  color: #666;
+  font-family: Arial, sans-serif;
+}
+
+.inventoryNoResults h2 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.inventoryNoResults p {
+  font-size: 1rem;
+  color: #999;
+}
+
+.inventorySearchContainer {
+padding-top: 20px;
+padding-bottom: 20px;
+display: flex;
+flex-direction: row;
+justify-content: center;
+
+}
+
+.inventorySearchContainer input.inventorySearchInput {
+  padding: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+  align-content: center;
+}
+
+.inventorySearchContainer .inventorySearchSelect {
+  padding: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+  
+
+
+  @media (max-width: 768px) {
+    .parallaxInventory {
+      background-image: url("/src/assets/media/background.6f5a58ea9a57050f0323.jpg");
+      min-height: 60vh;
+      min-width: 50vh;
+      background-attachment: fixed;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      margin-top: 100px;
+    }
+     
+    .inventoryHeaderImageGalleryDetailsContainer{
+      color: white; 
+      text-align: center; 
+      background-color: black; 
+      text-indent:25px; 
+      padding-left:30px; 
+      padding-right:30px;
+      padding-bottom: 10px;
+      font-size: 13.5px;
+    }
+
+.InventoryHeaderImageContainer{
+  padding-top: 1px;
+  padding-bottom: 60px;
+  position:absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: transparent;
+}
+
+/* .InventoryHeaderImageContainerButton button{
+  float: none;
+  position:absolute;
+  z-index: 4;
+  margin-right: 0px;
+  margin-left: 160px;
+  margin-top: 570px;
+  background-color: black;
+  color: white;
+  padding: 0;
+  width: 30px;
+  font-size: 15px;
+  border-color: white;
+} */
+
+
+.InventoryHeaderImageContainerButton button {
+  position: absolute; 
+  right: 0; 
+  z-index: 4;
+  background-color: black;
+  color: white;
+  padding: 0;
+  width: 30px;
+  font-size: 15px;
+  border: 1px solid white;
+}
+
+
+    .inventoryContainer{
+      text-align: center;
+      top:0;
+      padding-top: 100px;
+      background-color: transparent; 
+      padding-bottom: 124px;
+    
+      }
+      
+    .invetoryHeader{
+      font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-size: 50px;
+    color: white;
+    font-weight: 600; 
+    }
+    
+    .invetoryDetails{
+      font-family: sans-serif;
+      font-size: 14px;
+      color: white;
+      font-weight: normal;
+      }
+    
+   
+    
+      .inventoryMakeImage{
+        width: 100%;
+        height: 100%;
+        background-color: white;
+    
+      }
+
+      .inventoryTruckTable td  {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: center;
+        justify-items: center;
+        padding: 0;
+        margin: 0;
+      }
+
+      .inventoryTruckName {
+        font-size: 20px; /* Adjust font size for better readability on small screens */
+      }
+    
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+      }
+      
+      .modal-header h1 {
+        margin: auto;
+      }
+      
+      .image-container {
+        text-align: center;
+      }
+      
+      .image-container img {
+        max-width: calc(100% - 40px);
+      }
+      
+      .gallery-nav {
+        position: relative;
+        
+      }
+      
+      .gallery-nav button {
+        position: absolute;
+        top: calc(50% - 20px);
+      }
+      
+      .dots {
+        display: flex;
+      }
+      
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #ccc;
+          margin-right: 5px;
+      }
+      
+      .active.dot {
+          background-color: #333;
+      }
+    
+      .image-gallery-container {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+      
+      .image-gallery-container button {
+        background-color: #fff;
+        border: none;
+        padding: 5px;
+        font-size: 18px;
+        cursor: pointer;
+      }
+
+      
+}
+
+/* Add to the end of each CSS file or update existing @media blocks */
+
+/* Universal mobile-friendly styles */
+@media (max-width: 600px) {
+  /* Containers */
+  .parallaxInventory,
+  .account-parallax,
+  .dashboard-parallax {
+    min-width: 100vw;
+    min-height: 40vh;
+    padding: 0;
+    margin-top: 60px;
+    background-size: cover;
+  }
+
+  .inventoryContainer,
+  .account-container,
+  .dashboard-container {
+    padding: 8px;
+    margin-top: 60px;
+    min-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Headers */
+  .inventoryHeader,
+  .invetoryHeader,
+  .dashboard-title,
+  .account-title,
+  .productTitle {
+    font-size: 1.5rem !important;
+    padding: 0 8px;
+    text-align: center;
+  }
+
+  /* Details */
+  .inventoryDetails,
+  .invetoryDetails,
+  .productDetails {
+    font-size: 1rem !important;
+    padding: 0 8px;
+  }
+
+  /* Tables */
+  .orders-table,
+  .inventoryTruckTable {
+    font-size: 0.85rem;
+    width: 100vw;
+    overflow-x: auto;
+    display: block;
+  }
+  .orders-table th,
+  .orders-table td,
+  .inventoryTruckTable th,
+  .inventoryTruckTable td {
+    padding: 6px;
+    min-width: 120px;
+    font-size: 0.85rem;
+  }
+
+  /* Images */
+  .productGallery .productImage,
+  .inventoryTruckStyle,
+  .truck-img {
+    max-width: 95vw !important;
+    height: auto !important;
+    margin: 0 auto;
+    display: block;
+  }
+
+  /* Forms & Buttons */
+  .truck-order-form,
+  .truck-order-popup form,
+  .truck-order-confirmation-box,
+  .modal-content,
+  .account-container,
+  .dashboard-container {
+    padding: 8px !important;
+    min-width: 95vw;
+    max-width: 98vw;
+    border-radius: 8px;
+  }
+  button,
+  .edit-button,
+  .save-button,
+  .returnButton,
+  .cancel-btn,
+  .tab-button,
+  .shop-button {
+    font-size: 1rem !important;
+    padding: 10px 16px !important;
+    margin: 6px 0 !important;
+    width: 100%;
+    min-width: 120px;
+    border-radius: 8px;
+  }
+
+  /* Overlay */
+  .overlay,
+  .truck-order-popup,
+  .truck-order-confirmation,
+  .modal-overlay {
+    padding: 0 !important;
+    min-width: 100vw;
+    min-height: 100vh;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .role-selector,
+  .admin-login,
+  .customer-login,
+  .register-form {
+    width: 95vw !important;
+    padding: 2rem 1rem !important;
+    min-width: 95vw;
+    max-width: 98vw;
+  }
+}
+
+/* For slightly larger tablets */
+@media (max-width: 900px) {
+  .productPageContainer,
+  .productInfo,
+  .productGallery {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+  }
+  .productTitle {
+    font-size: 2rem !important;
+  }
+  .productDetails {
+    font-size: 1rem !important;
+  }
+}

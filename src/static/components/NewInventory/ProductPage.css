@@ -1,0 +1,200 @@
+.productPageContainer {
+  margin-top: 25vh;
+  display: flex;
+  flex-wrap: wrap;        /* ✅ allow wrapping on smaller screens */
+  gap: 2rem;
+  padding: 2rem;
+  align-items: flex-start; /* ✅ align image + info at the top */
+}
+
+.productGallery .productImage{
+  flex: 1;
+  max-width: 500px;       /* ✅ keep image from stretching too wide */
+width: 90%;            /* ✅ make it responsive */
+height: auto;           /* ✅ keep image aspect ratio */
+align-self: center;  /* ✅ align image to the top of the container */
+}
+
+
+.productInfo {
+  flex: 1;
+  min-width: 300px;       /* ✅ prevent info from being squished */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.productTitle {
+  margin: 0 0 1rem;       /* ✅ reset padding, add bottom spacing */
+  font-size: 2.5rem;
+  font-weight: bold;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.productDetails {
+  margin: 1rem 0;
+  line-height: 1.6;
+}
+
+.returnbuttonContainer {
+  margin-top: 20px;
+  display: flex;
+}
+
+button.returnButton {
+  background: none;
+  background-color: #073996;
+  color: white;
+  font-size: large;
+  font-weight: bold;
+  display: block;
+  margin: 0 auto;
+  cursor: pointer;
+  border: 1px solid #073996;
+  border-radius: 8px;
+  padding: 20px 40px;
+}
+
+button.returnButton:hover {
+  background-color: #0a2a6b;
+  border: 1px solid #0a2a6b;
+  transition: background-color 0.3s, border 0.3s;
+  transform: scale(1.02);
+}
+
+/* Add to the end of each CSS file or update existing @media blocks */
+
+/* Universal mobile-friendly styles */
+@media (max-width: 600px) {
+  /* Containers */
+  .parallaxInventory,
+  .account-parallax,
+  .dashboard-parallax {
+    min-width: 100vw;
+    min-height: 40vh;
+    padding: 0;
+    margin-top: 60px;
+    background-size: cover;
+  }
+
+  .inventoryContainer,
+  .account-container,
+  .dashboard-container {
+    padding: 8px;
+    margin-top: 60px;
+    min-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Headers */
+  .inventoryHeader,
+  .invetoryHeader,
+  .dashboard-title,
+  .account-title,
+  .productTitle {
+    font-size: 1.5rem !important;
+    padding: 0 8px;
+    text-align: center;
+  }
+
+  /* Details */
+  .inventoryDetails,
+  .invetoryDetails,
+  .productDetails {
+    font-size: 1rem !important;
+    padding: 0 8px;
+  }
+
+  /* Tables */
+  .orders-table,
+  .inventoryTruckTable {
+    font-size: 0.85rem;
+    width: 100vw;
+    overflow-x: auto;
+    display: block;
+  }
+  .orders-table th,
+  .orders-table td,
+  .inventoryTruckTable th,
+  .inventoryTruckTable td {
+    padding: 6px;
+    min-width: 120px;
+    font-size: 0.85rem;
+  }
+
+  /* Images */
+  .productGallery .productImage,
+  .inventoryTruckStyle,
+  .truck-img {
+    max-width: 95vw !important;
+    height: auto !important;
+    margin: 0 auto;
+    display: block;
+  }
+
+  /* Forms & Buttons */
+  .truck-order-form,
+  .truck-order-popup form,
+  .truck-order-confirmation-box,
+  .modal-content,
+  .account-container,
+  .dashboard-container {
+    padding: 8px !important;
+    min-width: 95vw;
+    max-width: 98vw;
+    border-radius: 8px;
+  }
+  button,
+  .edit-button,
+  .save-button,
+  .returnButton,
+  .cancel-btn,
+  .tab-button,
+  .shop-button {
+    font-size: 1rem !important;
+    padding: 10px 16px !important;
+    margin: 6px 0 !important;
+    width: 100%;
+    min-width: 120px;
+    border-radius: 8px;
+  }
+
+  /* Overlay */
+  .overlay,
+  .truck-order-popup,
+  .truck-order-confirmation,
+  .modal-overlay {
+    padding: 0 !important;
+    min-width: 100vw;
+    min-height: 100vh;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .role-selector,
+  .admin-login,
+  .customer-login,
+  .register-form {
+    width: 95vw !important;
+    padding: 2rem 1rem !important;
+    min-width: 95vw;
+    max-width: 98vw;
+  }
+}
+
+/* For slightly larger tablets */
+@media (max-width: 900px) {
+  .productPageContainer,
+  .productInfo,
+  .productGallery {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+  }
+  .productTitle {
+    font-size: 2rem !important;
+  }
+  .productDetails {
+    font-size: 1rem !important;
+  }
+}

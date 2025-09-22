@@ -1,0 +1,236 @@
+.account-parallax {
+  margin: 0;
+  padding: 0;
+  background: url("/src/assets/media/background.6f5a58ea9a57050f0323.jpg") no-repeat center center fixed;
+  background-size: cover; /* Make sure it covers full screen */
+  font-family: Arial, sans-serif;
+}
+
+/* Container */
+.account-container {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  font-family: Arial, sans-serif;
+  color: #333;
+  margin-top: 150px;
+}
+
+/* Title */
+.account-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: left;
+  color: #222;
+}
+
+/* Info Section */
+.info-section p,
+.info-section div {
+  margin-bottom: 15px;
+}
+
+.info-section strong {
+  display: inline-block;
+  min-width: 140px;
+  color: #111;
+}
+
+/* Editable Fields */
+.editable-field {
+  margin-bottom: 15px;
+}
+
+.input-field {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border 0.2s;
+}
+
+.input-field:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+/* Buttons */
+.edit-button {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #2563eb;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.edit-button:hover {
+  color: #1e40af;
+  text-decoration: underline;
+}
+
+.save-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.save-button:hover {
+  background-color: #15803d;
+}
+
+/* Add to the end of each CSS file or update existing @media blocks */
+
+/* Universal mobile-friendly styles */
+@media (max-width: 600px) {
+  /* Containers */
+  .parallaxInventory,
+  .account-parallax,
+  .dashboard-parallax {
+    min-width: 100vw;
+    min-height: 40vh;
+    padding: 0;
+    margin-top: 60px;
+    background-size: cover;
+  }
+
+  .inventoryContainer,
+  .account-container,
+  .dashboard-container {
+    padding: 8px;
+    margin-top: 60px;
+    min-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Headers */
+  .inventoryHeader,
+  .invetoryHeader,
+  .dashboard-title,
+  .account-title,
+  .productTitle {
+    font-size: 1.5rem !important;
+    padding: 0 8px;
+    text-align: center;
+  }
+
+  /* Details */
+  .inventoryDetails,
+  .invetoryDetails,
+  .productDetails {
+    font-size: 1rem !important;
+    padding: 0 8px;
+  }
+
+  /* Tables */
+  .orders-table,
+  .inventoryTruckTable {
+    font-size: 0.85rem;
+    width: 100vw;
+    overflow-x: auto;
+    display: block;
+  }
+  .orders-table th,
+  .orders-table td,
+  .inventoryTruckTable th,
+  .inventoryTruckTable td {
+    padding: 6px;
+    min-width: 120px;
+    font-size: 0.85rem;
+  }
+
+  /* Images */
+  .productGallery .productImage,
+  .inventoryTruckStyle,
+  .truck-img {
+    max-width: 95vw !important;
+    height: auto !important;
+    margin: 0 auto;
+    display: block;
+  }
+
+  /* Forms & Buttons */
+  .truck-order-form,
+  .truck-order-popup form,
+  .truck-order-confirmation-box,
+  .modal-content,
+  .account-container,
+  .dashboard-container {
+    padding: 8px !important;
+    min-width: 95vw;
+    max-width: 98vw;
+    border-radius: 8px;
+  }
+  button,
+  .edit-button,
+  .save-button,
+  .returnButton,
+  .cancel-btn,
+  .tab-button,
+  .shop-button {
+    font-size: 1rem !important;
+    padding: 10px 16px !important;
+    margin: 6px 0 !important;
+    width: 100%;
+    min-width: 120px;
+    border-radius: 8px;
+  }
+
+  /* Overlay */
+  .overlay,
+  .truck-order-popup,
+  .truck-order-confirmation,
+  .modal-overlay {
+    padding: 0 !important;
+    min-width: 100vw;
+    min-height: 100vh;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .role-selector,
+  .admin-login,
+  .customer-login,
+  .register-form {
+    width: 95vw !important;
+    padding: 2rem 1rem !important;
+    min-width: 95vw;
+    max-width: 98vw;
+  }
+}
+
+/* For slightly larger tablets */
+@media (max-width: 900px) {
+  .productPageContainer,
+  .productInfo,
+  .productGallery {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+  }
+  .productTitle {
+    font-size: 2rem !important;
+  }
+  .productDetails {
+    font-size: 1rem !important;
+  }
+}

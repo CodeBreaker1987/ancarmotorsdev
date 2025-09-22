@@ -1,0 +1,182 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 15, 15, 0.95);
+  color: white;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 9999;
+}
+
+.overlay h2 {
+padding-top: 30px;
+  margin-top: -100px;
+  font-size: 40px;
+}
+
+.role-selector,
+.admin-login,
+.customer-login,
+.register-form {   /* 🔹 Added register-form */
+  background: #222;
+  padding: 7rem 5rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  width: 480px;
+  max-height: 66vh;
+  overflow-y: auto; /* in case the form gets long */
+}
+
+.role-selector button,
+.admin-login button {
+  margin: 0.5rem;
+  padding: 1.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #002871;
+  color: white;
+  cursor: pointer;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.overlaybuttons {
+  gap: 80px;
+  display: flex;
+  margin-top: 30px;
+}
+
+.customer-login .Loginbutton,
+.customer-login .Backbutton,
+.register-form .Registerbutton,
+.register-form .Backbutton {
+  margin: 0.5rem;
+  padding: 1.2rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #002871;
+  color: white;
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: bold;
+  width: 40%;
+}
+
+.login-later-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  color: white;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.login-later-btn:hover {
+  transition: transform 0.3s ease-in-out;
+  transform: scale(1.2);
+}
+
+.role-selector button:hover,
+.admin-login button:hover {
+  background: #3799d4;
+  transition: transform 0.3s ease-in-out;
+  transform: scale(1.1);
+}
+
+.customer-login .Loginbutton:hover,
+.customer-login .Backbutton:hover,
+.register-form .Registerbutton:hover,
+.register-form .Backbutton:hover {
+  background: #3799d4;
+  transition: transform 0.3s ease-in-out;
+  transform: scale(1.05);
+}
+
+.admin-login input,
+.customer-login input,
+.register-form input {   /* 🔹 Shared input fields */
+  display: block;
+  width: 80%;
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 1rem;
+  justify-self: center;
+}
+
+/* 🔹 Registration-specific tweaks */
+.register-form p {
+  margin-top: 1rem;
+  font-size: 16px;
+}
+
+.register-form p span {
+  color: #3799d4;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.register-form p span:hover {
+  color: #5ab0f0;
+}
+
+/* Role-images */
+.Role-images {
+  display: flex;
+  gap: 100px;
+}
+
+.icon-circle {
+  width: 120vh;
+  height: 20vh;
+  border-radius: 50%;       
+  display: flex;
+  justify-content: center;  
+  align-items: center;      
+  background-color: #6e6e6e;
+  cursor: pointer;
+  transition: 0.3s;
+  padding: 35px;
+}
+
+.password-field {
+  position: relative; /* anchor point */
+  width: 100%;
+}
+
+.password-popup {
+  position: block;
+  top: 100%; /* show below the input */
+  left: 0;
+  min-width: 250px;
+  background: #333;
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 5px;
+  text-align: center;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 99999; /* float above all forms */
+}
+
+
+
+.password-popup p {
+  margin: 4px 0;
+  font-weight: bold;
+}
+
+.password-popup .valid {
+  color: #4CAF50; /* green */
+}
+
+.password-popup .invalid {
+  color: #f44336; /* red */
+}

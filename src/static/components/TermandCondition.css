@@ -1,0 +1,46 @@
+.policies-container {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    margin-top: 100px;
+  }
+  
+  .TCHeader {
+    color: #333;
+    font-size: 2em;
+    margin-bottom: 0.5em;
+  }
+  
+  .TCNumber {
+    color: #333;
+    font-size: 1.5em;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+  }
+  
+  .TCParagrahp {
+    margin-bottom: 1em;
+  }
+  
+ .TCUL {
+    list-style-type: disc;
+    margin-left: 20px;
+  }
+  
+  .TCUL .TCLI {
+    margin-bottom: 0.5em;
+  }
+  
+  .terms-section, .privacy-section {
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 768px) {
+.policies-container{
+  margin-top: 100px;
+}
+
+  }

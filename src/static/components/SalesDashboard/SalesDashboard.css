@@ -1,0 +1,396 @@
+/* src/static/components/SalesDashboard/SalesDashboard.css */
+
+.sales-dashboard {
+  padding: 24px;
+  background-color: #f9fafb;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: Arial, sans-serif;
+}
+
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.logout-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.logout-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Orders Section */
+.orders-section {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.orders-header h2 {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.orders-header button {
+  padding: 6px 12px;
+  background: #e5e7eb;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.orders-header button:hover {
+  background: #d1d5db;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.tab {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #e5e7eb;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.tab.active {
+  background: #10376d;
+  color: white;
+}
+
+/* Orders Table */
+.orders-table-container {
+  overflow-x: auto;
+}
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.orders-table th,
+.orders-table td {
+  padding: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+.orders-table th {
+  background: #144180;
+  color: #fff;
+  font-weight: 600;
+  border-bottom: 2px solid #4F46E5;
+}
+.orders-table tr:hover {
+  background: #e0e7ff;
+}
+.orders-table td {
+  vertical-align: middle;
+}
+.orders-table .empty {
+  text-align: center;
+  padding: 16px;
+  color: #6b7280;
+}
+.status {
+  display: inline-block;
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.cancel-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  padding: 4px 8px;
+  margin-left: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.cancel-btn:hover {
+  background: #fecaca;
+}
+
+/* Sales Section */
+.sales-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  margin-top: 16px;
+}
+
+.sales-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 10px;
+}
+
+.dashboard-header h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #111827;
+}
+.sales-header h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #144180;
+}
+
+.sales-header .revenue {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #10B981;
+}
+
+.sales-chart-filters {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 18px;
+  font-size: 1rem;
+}
+
+.sales-chart-filters label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sales-chart-filters select,
+.sales-chart-filters input[type="month"] {
+  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #f3f4f6;
+  color: #374151;
+  transition: border 0.2s;
+}
+
+.sales-chart-filters select:focus,
+.sales-chart-filters input[type="month"]:focus {
+  border-color: #194f9c;
+  outline: none;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 10px;
+}
+
+.chart-box {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 18px 16px;
+  background: #f3f4f6;
+  box-shadow: 0 2px 8px rgba(79,70,229,0.04);
+  transition: box-shadow 0.2s;
+}
+
+.chart-box:hover {
+  box-shadow: 0 4px 16px rgba(79,70,229,0.10);
+}
+
+.chart-box h3 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #144180;
+}
+
+.chart-container {
+  width: 100%;
+  height: 260px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  padding: 8px;
+}
+
+/* Footer */
+.dashboard-footer {
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.dashboard-header .logo{
+  height: 200px;
+  width: auto;
+}
+
+/* Universal mobile-friendly styles */
+@media (max-width: 600px) {
+  /* Containers */
+  .parallaxInventory,
+  .account-parallax,
+  .dashboard-parallax {
+    min-width: 100vw;
+    min-height: 40vh;
+    padding: 0;
+    margin-top: 60px;
+    background-size: cover;
+  }
+
+  .inventoryContainer,
+  .account-container,
+  .dashboard-container {
+    padding: 8px;
+    margin-top: 60px;
+    min-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Headers */
+  .inventoryHeader,
+  .invetoryHeader,
+  .dashboard-title,
+  .account-title,
+  .productTitle {
+    font-size: 1.5rem !important;
+    padding: 0 8px;
+    text-align: center;
+  }
+
+  /* Details */
+  .inventoryDetails,
+  .invetoryDetails,
+  .productDetails {
+    font-size: 1rem !important;
+    padding: 0 8px;
+  }
+
+  /* Tables */
+  .orders-table,
+  .inventoryTruckTable {
+    font-size: 0.85rem;
+    width: 100vw;
+    overflow-x: auto;
+    display: block;
+  }
+  .orders-table th,
+  .orders-table td,
+  .inventoryTruckTable th,
+  .inventoryTruckTable td {
+    padding: 6px;
+    min-width: 120px;
+    font-size: 0.85rem;
+  }
+
+  /* Images */
+  .productGallery .productImage,
+  .inventoryTruckStyle,
+  .truck-img {
+    max-width: 95vw !important;
+    height: auto !important;
+    margin: 0 auto;
+    display: block;
+  }
+
+  /* Forms & Buttons */
+  .truck-order-form,
+  .truck-order-popup form,
+  .truck-order-confirmation-box,
+  .modal-content,
+  .account-container,
+  .dashboard-container {
+    padding: 8px !important;
+    min-width: 95vw;
+    max-width: 98vw;
+    border-radius: 8px;
+  }
+  button,
+  .edit-button,
+  .save-button,
+  .returnButton,
+  .cancel-btn,
+  .tab-button,
+  .shop-button {
+    font-size: 1rem !important;
+    padding: 10px 16px !important;
+    margin: 6px 0 !important;
+    width: 100%;
+    min-width: 120px;
+    border-radius: 8px;
+  }
+
+  /* Overlay */
+  .overlay,
+  .truck-order-popup,
+  .truck-order-confirmation,
+  .modal-overlay {
+    padding: 0 !important;
+    min-width: 100vw;
+    min-height: 100vh;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .role-selector,
+  .admin-login,
+  .customer-login,
+  .register-form {
+    width: 95vw !important;
+    padding: 2rem 1rem !important;
+    min-width: 95vw;
+    max-width: 98vw;
+  }
+}
+
+/* For slightly larger tablets */
+@media (max-width: 900px) {
+  .productPageContainer,
+  .productInfo,
+  .productGallery {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+  }
+  .productTitle {
+    font-size: 2rem !important;
+  }
+  .productDetails {
+    font-size: 1rem !important;
+  }
+}

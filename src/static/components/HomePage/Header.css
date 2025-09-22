@@ -1,0 +1,143 @@
+
+  .headerParallaxContainer {
+    width: 95%;
+    height: 70vh;
+    pointer-events: none;
+    background-size: stretch;
+    padding-top: 100px;
+  }
+
+.headerContainerMobile{
+display: none;
+  }
+.headerContainerWeb{
+  background-color: white;
+align-self: center;
+align-content: center;
+align-items: center;
+text-align: center;
+bottom: 0;
+}
+.aboutContainer{
+  justify-content: center;
+text-align: center;
+top:0;
+padding-top: 40px;
+background-color: rgb(255, 255, 255);
+bottom: 0;
+  }
+
+  .aboutContainer:hover {
+    text-shadow: 0 0 10px rgba(135, 207, 235, 0.5); 
+    }
+    
+    .aboutContainer:hover {
+    transform: scale(0.95);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
+    }   
+  
+.aboutHeader{
+  justify-content: center;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-size: 60px;
+  word-spacing: 5px;
+  letter-spacing: 3px;
+  color: #062e66;
+  font-weight: bold;
+text-align: center;
+  margin-top: 20px;
+  padding-bottom: 10px;
+  padding-top: 20px;
+  padding-left: 200px;
+  padding-right: 150px;
+
+}
+
+
+.aboutDetails{
+font-family: Impact, sans-serif;
+margin-left: 17px;
+padding-left: 150px;
+padding-right: 150px;
+padding-bottom: 50px;
+font-size: 22px;
+color: #062e66;
+font-weight: normal;
+line-height: 1.7;
+text-align: center;
+
+  }
+
+  @media (max-width: 768px) {
+.headerContainerMobile{
+  padding-top: 60px;
+  display: flex;
+}
+.headerContainerWeb{
+  display: none;
+}
+    .parallax {
+      background-image: url("../images/about-background.png");
+      min-height: 90vh; 
+      min-width: 50vh; 
+      background-attachment: fixed;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      margin-top: 100px;
+    }
+  
+    .parallax2 {
+      margin-top: 80px;
+      top: 0;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      width: 100%;
+
+      border-color: black;
+      border-width: 2px;
+      /* border-style: ridge; */
+      display: flex;
+    }
+
+.aboutContainer{
+  justify-content: center;
+  text-align: center;
+  top:0;
+  padding-top: 10px;
+  background-color: rgba(255, 255, 255, 0.5);
+  padding-bottom: 70px;
+  bottom: 0;
+  margin: 0 auto;
+  width: 100%;
+
+    }
+    
+  .aboutHeader{
+    justify-content: center;
+    text-align: center;
+  font-family: Impact, sans-serif;
+  font-size: 60px;
+  color: #062e66;
+  font-weight: bold; 
+  padding-left: 150px;
+  }
+
+  
+  .aboutDetails{
+  font-family: impact,sans-serif;
+  padding-left: 0px;
+  padding-right: 0px;
+  margin-left: 4px;
+  margin-right: 4px;
+  font-size: 15px;
+  color: #062e66;
+  font-weight: bold;
+  line-height: normal;
+    }
+      
+  .aboutHeader h1{
+    text-align: center;
+  }
+  }

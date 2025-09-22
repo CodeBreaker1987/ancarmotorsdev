@@ -1,0 +1,500 @@
+.brandMissionHeader{
+  font-family: impact,sans-serif;
+  font-size: 60px;
+  color: #062e66;
+  font-weight: bold;
+text-align: center;
+letter-spacing: 10px;
+    }
+    .brandMissionDetails{
+      font-family: sans-serif;
+      margin-top: -30px;
+      font-size: 20px;
+      color: #062e66;
+      font-weight: normal;
+      line-height: 2.6;
+      text-align: center;
+        }
+      
+        .missionContainer:hover {
+          text-shadow: 0 0 10px rgba(135, 207, 235, 0.5); 
+          }
+          
+          .missionContainer:hover {
+          transform: scale(0.95);
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
+          }   
+.branchTableContainer {
+  background-color: white;
+  table-layout: fixed;
+  width: 100%;
+  margin-top: -80px;
+}
+
+.branchTableContainer td {
+  width: calc(33.33% - 20px);
+  padding: 10px;
+  text-align: center;
+}
+
+.branchTableContainer .branchContainerIconMapStyle {
+  height: 300px;
+  width: 70%;
+  margin-bottom: 10px;
+  color: rgb(24, 68, 126);
+}
+
+.branchContainerBranchName{
+  margin-top: -60px;
+padding-top: 50px;
+padding-bottom: 50px;
+font-family: sans-serif;
+font-size: 30px;
+color: #062e66;
+font-weight: normal;
+line-height: 1.3;
+padding-left: 59px;
+padding-right: 60px;
+text-align: center;
+display: flex;
+flex-direction: column; 
+justify-content: flex-start; 
+height: 200px; 
+border: 1px solid #ccc; 
+cursor: pointer; 
+transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out; 
+}
+.branchContainerBranchName:hover {
+text-shadow: 0 0 10px rgba(135, 207, 235, 0.5); 
+}
+
+.branchContainerBranchName:active {
+transform: scale(0.95);
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
+}
+
+
+
+.branchContainerTd {
+  background-color: white;
+  transition: background-color 0.3s ease;
+}
+
+.branchsContainerTd:hover {
+  background-color: white;
+  cursor: pointer; 
+  box-shadow: 0 0 50px rgba(135, 207, 235, 0.815); 
+}
+
+
+.parallaxBrand {
+  min-height: 100vh; 
+  min-width: 100vh; 
+  margin-top: 1px;
+  padding-top: 40px;
+    }
+  
+  
+    .brandContainer {
+      width: 100%;
+      height: 80vh;
+      object-fit: cover;
+      background-size: cover;
+      background-position: center;
+    }
+
+.vissionContainer{
+text-align: center;
+}
+
+.vissionContainer:hover {
+  text-shadow: 0 0 10px rgba(135, 207, 235, 0.5); 
+  }
+  
+  .vissionContainer:hover {
+  transform: scale(0.95);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
+  }   
+
+  .brandVissionHeader{
+    font-family: impact,sans-serif;
+    font-size: 60px;
+    color: #062e66;
+    font-weight: bold;  
+  text-align: center;
+  letter-spacing: 10px;
+      }
+    
+.branchVissionContainerIconStyle {
+  margin-top: -140px;
+  margin-bottom:-140px;
+        height: 600px;
+        width: 40%;
+        color: rgb(24, 68, 126);
+      }
+      .branchVissionDetais{
+        margin-top: -60px;
+      padding-top: 50px;
+      font-family: sans-serif;
+      font-size: 35px;
+      color: #062e66;
+      font-weight: bold;
+      line-height: 1.3;
+      padding-left: 59px;
+      padding-right: 60px;
+      text-align: center;
+      display: flex;
+      flex-direction: column; 
+      justify-content: flex-start; 
+      height: 200px; 
+      cursor: pointer; 
+      transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out; 
+      }
+      .branchVissionDetais:hover {
+      text-shadow: 0 0 10px rgba(135, 207, 235, 0.5); 
+      }
+      
+      .branchVissionDetais:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
+      }   
+
+ 
+  @media (max-width: 768px) {
+    .parallaxBrand {
+      min-height: 100vh; 
+      min-width: 50vh; 
+      margin-top: 1px;
+      padding-top: 40px;
+        }
+        .branchTableContainer {
+          background-color: white;
+          table-layout: fixed;
+          width: 100%;
+          margin-top: -40px;
+        }
+        .brandContainer {
+          width: 100%;
+          height: auto;
+          display: flex;
+          flex: 1;
+            }
+            .brandMissionDetails{
+              font-family: sans-serif;
+              margin-top: 0px;
+              font-size: 20px;
+              color: #062e66;
+              font-weight: normal;
+              line-height: 2.6;
+              text-align: center;
+                }
+
+            
+.branchTableContainer .branchContainerIconMapStyle {
+  height: 250px;
+  width: 100%;
+  margin-bottom: 10px;
+  color: rgb(24, 68, 126);
+  margin-top: -20px;
+}
+            .branchContainerBranchName{
+            font-size: 26px;
+            color: #062e66;
+            font-weight: normal;
+            line-height: 1.3;
+            padding-top: 20px;
+            padding-left: 10px;
+            padding-right: 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column; 
+            justify-content: flex-start; 
+            height: 170px; 
+            border: 1px solid #ccc; 
+            cursor: pointer; 
+            transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out; 
+            }
+            .branchVissionDetais{
+              font-size: 26px;
+              color: #062e66;
+              font-weight: normal;
+              line-height: 1.3;
+              padding-top: 20px;
+              padding-left: 10px;
+              padding-right: 10px;
+              text-align: center;
+              display: flex;
+              flex-direction: column; 
+              justify-content: flex-start; 
+              height: 170px; 
+              cursor: pointer; 
+              transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out; 
+            }
+            .mission {
+              background-image: url("../images/mission.png");
+              min-height: 80vh; 
+              background-position: center;
+              background-repeat: no-repeat;
+              background-size: contain;
+                }
+                .vision {
+                  background-image: url("../images/vision.png");
+                  min-height: 80vh; 
+                  background-position: center;
+                  background-repeat: no-repeat;
+                  background-size: contain;
+                  padding-top: -100;
+                  top: 0;
+                  bottom: 0;
+                  margin-top: -100;
+            
+                    }
+
+
+                 
+                  
+                    .missionContainer tbody {
+                      display: flex;
+                      flex-direction: column;
+                    }
+                  
+                    .missionContainer td {
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      padding: 20px;
+                      box-sizing: border-box;
+                      width: 100%;
+                    }
+                  
+                    .missionContainer .branchContainerIconMapStyle {
+                      width: 100%;
+                      height: 250px; 
+                      margin-bottom: 10px;
+                    }
+                  
+                    .missionContainer h1 {
+                      margin: 0; 
+                    }
+            
+                    .branchVissionContainerIconStyle {
+                      margin-top: -100px;
+                      margin-bottom:-50px;
+                            height: 400px;
+                            width: 100%;
+                            color: rgb(24, 68, 126);
+                          }
+
+
+  }
+
+  .parallaxFaq {
+background-color: #144180;
+min-width: 100vh;
+height: 45vh;
+padding-bottom: 1px;
+  }
+
+.faqHeader{
+margin-top: 0;
+padding-top: 90px;
+text-align: center;
+font-family: sans-serif;
+font-size: 38px;
+color: rgb(243, 235, 235);
+font-weight: 100; 
+}
+
+.faqContainer {
+background-color: #144180;
+display: flex;
+grid-template-columns: repeat(2, 1fr);
+text-align: center;
+align-content: center;
+align-items: center;
+align-self: center;
+justify-content: center;
+  }
+  
+  
+.faqName {
+margin-top: 25px;
+margin-bottom: 60px;
+margin-right: 10px;
+padding: 16px;
+font-size: 20px;
+font-weight: bold;
+color: rgb(61, 56, 56);
+  }
+  
+  @media (max-width: 768px) {
+    .parallaxFaq {
+      background-color: #144180;
+      min-width: 45vh;
+      height: 55vh;
+      padding-bottom: 1px;
+    }
+  
+    .faqHeader {
+      margin-top: 0;
+      padding-top: 90px;
+      text-align: center;
+      font-family: sans-serif;
+      font-size: 38px;
+      color: rgb(243, 235, 235);
+      font-weight: 100; 
+    }
+  
+    .faqContainer {
+      background-color: #144180;
+      display: flex;
+      flex-wrap: wrap; 
+      justify-content: center;
+      align-items: flex-start; 
+      gap: 20px; 
+      position: relative; 
+      padding-bottom: 60px;
+    }
+  
+    .faqName {
+      margin-top: 25px;
+      margin-right: 10px;
+      padding: 12px;
+      font-size: 20px;
+      font-weight: bold;
+      color: rgb(61, 56, 56);
+      width: 320px;
+    }
+  
+    .faqContainer a:nth-child(2) {
+      position: absolute; 
+      top: 60px; 
+    }
+  }
+  
+  
+  .headerParallaxContainer {
+    width: 95%;
+    height: 70vh;
+    pointer-events: none;
+    background-size: stretch;
+    padding-top: 100px;
+  }
+
+.headerContainerMobile{
+display: none;
+  }
+.headerContainerWeb{
+  background-color: white;
+align-self: center;
+align-content: center;
+align-items: center;
+text-align: center;
+bottom: 0;
+}
+.aboutContainer{
+  justify-content: center;
+text-align: center;
+top:0;
+padding-top: 40px;
+background-color: rgb(255, 255, 255);
+bottom: 0;
+  }
+
+  .aboutContainer:hover {
+    text-shadow: 0 0 10px rgba(135, 207, 235, 0.5); 
+    }
+    
+    .aboutContainer:hover {
+    transform: scale(0.95);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
+    }   
+  
+.aboutHeader{
+  justify-content: center;
+  font-family: sans-serif;
+  font-size: 50px;
+  color: #062e66;
+  font-weight: bold;
+text-align: center;
+}
+
+
+
+.aboutDetails{
+font-family: impact,sans-serif;
+margin-left: 30px;
+padding-left: 200px;
+padding-right: 200px;
+font-size: 20px;
+color: #062e66;
+font-weight: normal;
+line-height: 2.6;
+  }
+
+  @media (max-width: 768px) {
+.headerContainerMobile{
+  padding-top: 60px;
+  display: flex;
+}
+.headerContainerWeb{
+  display: none;
+}
+    .parallax {
+      background-image: url("../images/about-background.png");
+      min-height: 90vh; 
+      min-width: 50vh; 
+      background-attachment: fixed;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      margin-top: 100px;
+    }
+  
+    .parallax2 {
+      margin-top: 80px;
+      top: 0;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      width: 100%;
+
+      border-color: black;
+      border-width: 2px;
+      /* border-style: ridge; */
+      display: flex;
+    }
+
+.aboutContainer{
+  justify-content: center;
+  text-align: center;
+  top:0;
+  padding-top: 10px;
+  background-color: rgba(255, 255, 255, 0.5);
+  padding-bottom: 70px;
+  bottom: 0;
+  margin-left: 0px;
+    }
+    
+  .aboutHeader{
+    justify-content: center;
+  font-family: sans-serif;
+  font-size: 60px;
+  color: #062e66;
+  font-weight: 600; 
+  }
+
+  
+  .aboutDetails{
+  font-family: impact,sans-serif;
+  padding-left: 0px;
+  padding-right: 0px;
+  margin-left: 4px;
+  margin-right: 4px;
+  font-size: 15px;
+  color: #062e66;
+  font-weight: bold;
+  line-height: normal;
+    }
+      
+  }
