@@ -1,0 +1,39 @@
+/* AuthNav.css */
+.authnav-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 15, 15, 0.95);
+  color: white;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 9999;
+}
+
+.authnav-form {
+  position: relative; /* important: makes button position relative to form box */
+  display: inline-block;
+}
+
+.close-button-authnav {
+  position: absolute;
+  top: 6px;
+  right: 5px;
+  background: rgb(15, 15, 15);
+  border: black;
+  border-radius: 50%;
+  padding: 0.5rem 0.9rem;
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.close-button-authnav:hover {
+  transform: scale(1.2);
+  color: #3799d4;
+}

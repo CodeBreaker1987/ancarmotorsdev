@@ -4,6 +4,8 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import "./App.css";
 
 import Nav from "./static/components/Nav";
+import AuthNav from "./static/components/UserAuth/AuthNav";
+import "./static/components/UserAuth/AuthNav.css";
 import HomeNav from "./static/components/HomePage/HomeNav";
 import InventoryNav from "./static/components/NewInventory/InventoryNav";
 import BrandAvailableNav from "./static/components/BrandAvailable/BrandAvailableNav";
@@ -32,9 +34,42 @@ function AppContent() {
     };
   }, []);
 
+  // Overlay/modal state
+  const [overlayOpen, setOverlayOpen] = React.useState(false);
+  const [overlayView, setOverlayView] = React.useState("role");
+
+  // Listen for custom openOverlay event
+  React.useEffect(() => {
+    const handleOpenOverlay = (e) => {
+      setOverlayOpen(true);
+      setOverlayView(e.detail?.view || "role");
+    };
+    window.addEventListener("openOverlay", handleOpenOverlay);
+    return () => {
+      window.removeEventListener("openOverlay", handleOpenOverlay);
+    };
+  }, []);
+
+  // Handler to close overlay
+  const handleCloseOverlay = () => {
+    setOverlayOpen(false);
+    setOverlayView("role");
+  };
+
+  // Handlers to open overlay for Nav
+  const handleOpenOverlay = () => {
+    setOverlayOpen(true);
+    setOverlayView("customer");
+  };
+  const handleOpenRegister = () => {
+    setOverlayOpen(true);
+    setOverlayView("register");
+  };
+
   return (
     <div className="App">
-      {!isSalesDashboard && <Nav />}
+      {!isSalesDashboard && <Nav onOpenOverlay={handleOpenOverlay}
+    onOpenRegister={handleOpenRegister} />}
       <ScrollToTop />
 
       <div className="content">
@@ -52,6 +87,15 @@ function AppContent() {
           <Route path="/SalesDashboard" element={<SalesDashboard />} />
         </Routes>
       </div>
+
+      {/* AuthNav modal for sign in/sign up */}
+      {overlayOpen && (
+        <AuthNav
+          view={overlayView}
+          setView={setOverlayView}
+          onClose={handleCloseOverlay}
+        />
+      )}
 
       {!isSalesDashboard && <footer>© 2025 Ancar Motors</footer>}
     </div>

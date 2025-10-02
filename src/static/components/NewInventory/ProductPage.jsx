@@ -1,33 +1,72 @@
+// src/static/components/NewInventory/ProductPage.jsx
+import React, { useEffect, useState } from "react";
 import TruckOrderForm from "./TruckOrderForm";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "../../Context/UserContext.jsx";
-
 import "./ProductPage.css";
 
 const ProductPage = () => {
   const { user } = useUser();
   const location = useLocation();
-  const navigate = useNavigate(); // Add this line
-  const truck = location.state?.truck;
+  const navigate = useNavigate();
 
-  // If truck prop is not passed, show error
+  // Use state for truck so it can be restored
+  const [truck, setTruck] = useState(location.state?.truck || null);
+
+  // Save truck info to localStorage whenever visiting this page
+  useEffect(() => {
+    if (truck) {
+      localStorage.setItem(
+        "lastProductPage",
+        JSON.stringify({
+          pathname: location.pathname,
+          state: { truck },
+        })
+      );
+    }
+  }, [truck, location.pathname]);
+
+  // Restore from localStorage if truck is missing
+  useEffect(() => {
+    if (!truck) {
+      const saved = localStorage.getItem("lastProductPage");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.state?.truck) {
+          setTruck(parsed.state.truck);
+        }
+      }
+    }
+  }, [truck]);
+
+  // Overlay open handlers
+  const handleOpenOverlay = () => {
+    const event = new CustomEvent("openOverlay", { detail: { view: "customer" } });
+    window.dispatchEvent(event);
+  };
+
+  const handleOpenRegister = () => {
+    const event = new CustomEvent("openOverlay", { detail: { view: "register" } });
+    window.dispatchEvent(event);
+  };
+
   if (!truck) {
     return <h2 className="text-center text-red-600">Product not found 🚚</h2>;
   }
 
-  console.log("Product found:", truck);
-
   return (
     <div className="productPageContainer">
-      {/* === Static Image === */}
+      {/* === Back Button === */}
       <div className="returnButtonContainer">
         <button
           className="returnButton"
-          onClick={() => navigate("/InventoryNav")} // Redirect to InventoryNav
+          onClick={() => navigate("/InventoryNav")}
         >
           ◁ Return
         </button>
       </div>
+
+      {/* === Product Gallery === */}
       <div className="productGallery">
         <img
           src={truck.thumbnail}
@@ -39,11 +78,18 @@ const ProductPage = () => {
       {/* === Product Info === */}
       <div className="productInfo">
         <div className="productStyle">
-        <h1 className="productTitle">{truck.description}</h1>
-        <p className="productDetails">{truck.Details}</p>
+          <h1 className="productTitle">{truck.description}</h1>
+          <p className="productDetails">{truck.Details}</p>
         </div>
+
         {/* === Truck Order Form === */}
-        <TruckOrderForm truck={truck} basePrice={truck.basePrice} user={user}/>
+        <TruckOrderForm
+          truck={truck}
+          basePrice={truck.basePrice}
+          user={user}
+          onOpenOverlay={handleOpenOverlay}
+          onOpenRegister={handleOpenRegister}
+        />
       </div>
     </div>
   );

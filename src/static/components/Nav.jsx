@@ -5,7 +5,7 @@ import "./Nav.css";
 import AncarLogo from "/src/assets/media/AncarLogo.7ad7473b37e000adbeb6.png";
 import { useUser } from "../Context/UserContext.jsx";
 
-const Nav = ({ onOpenOverlay }) => {
+const Nav = ({ onOpenOverlay, onOpenRegister }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { user, setUser } = useUser();
@@ -93,12 +93,20 @@ const Nav = ({ onOpenOverlay }) => {
               )}
             </div>
           ) : (
-           <Link
+            <>
+             <Link
               className="Order-list"
               onClick={() => onOpenOverlay?.()}
             >
+              <div className="textnav-size">SIGN IN<hr /></div>
+            </Link>
+            <Link
+              className="Order-list"
+              onClick={() => onOpenRegister?.()}
+            >
               <div className="textnav-size">SIGN UP<hr /></div>
             </Link>
+            </>
           )}
         </div>
       </nav>

@@ -18,7 +18,8 @@ const PAYMENT_METHODS = [
 
 const today = new Date().toISOString().split("T")[0];
 
-export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced }) {
+export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, onOpenOverlay, onOpenRegister }) {
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const { user } = useUser(); // logged-in user from PostgreSQL
   const [color, setColor] = useState("");
   const [payload, setPayload] = useState("");
@@ -28,7 +29,7 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced }) 
   const [quantity, setQuantity] = useState(1);
   const [shipping, setShipping] = useState(SHIPPING[0].value);
   const [shippingDate, setShippingDate] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("Bank Transfer");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [sending, setSending] = useState(false);
   const [showOrderSuccess, setShowOrderSuccess] = useState(false); // NEW: Success popup
@@ -45,7 +46,7 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced }) 
       setQuantity(1);
       setShipping(SHIPPING[0].value);
       setShippingDate("");
-      setPaymentMethod("");
+      setPaymentMethod("Bank Transfer");
     }
   }, [truck]);
 
@@ -99,10 +100,14 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced }) 
 };
 
   const handleCheckout = (e) => {
-  e.preventDefault();
-  if (!validateForm()) return; // Stop if validation fails
-  setShowConfirmation(true);   // ✅ Only show confirmation if valid
-};
+    e.preventDefault();
+    if (!validateForm()) return; // Stop if validation fails
+    if (!user) {
+      setShowAuthPrompt(true);
+      return;
+    }
+    setShowConfirmation(true);   // ✅ Only show confirmation if valid
+  };
 
   const handlePlaceOrder = async () => {
     if (!user) {
@@ -191,7 +196,6 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced }) 
       <form onSubmit={handleCheckout}>
         <fieldset>
           <legend>Specifications</legend>
-
           {/* Colors */}
           {truck.specifications.colors?.length > 0 && (
             <div style={{ marginBottom: 2 }}>
@@ -381,6 +385,45 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced }) 
           Checkout
         </button>
       </form>
+
+      {/* Auth Prompt for unauthenticated users */}
+      {showAuthPrompt && (
+        <div className="truck-order-confirmation">
+          <div className="truck-order-confirmation-box">
+            <button
+              type="button"
+              className="truck-order-popup-cancel"
+              onClick={() => setShowAuthPrompt(false)}
+            >
+              ×
+            </button>
+            <h2>Interested in this product?</h2>
+            <p>Sign Up or Login first before placing the order.</p>
+            <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAuthPrompt(false);
+                  onOpenOverlay?.();
+                }}
+                style={{ fontWeight: "bold", fontSize: 18 }}
+              >
+                SIGN IN
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAuthPrompt(false);
+                  onOpenRegister?.();
+                }}
+                style={{ fontWeight: "bold", fontSize: 18 }}
+              >
+                SIGN UP
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Order Confirmation Popup */}
       {showConfirmation && (
