@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./OrderNav.css";
 import { images } from "../NewInventory/InventoryHeader";
+import { useUser } from "../../Context/UserContext.jsx";
 
 function getTruckImage(model) {
 const truck = images.find(t => t.description === model);
@@ -11,8 +12,7 @@ return truck ? truck.icon : "https://via.placeholder.com/120";
 const OrderNav = () => {
   const navigate = useNavigate();
 
-  // ✅ Get logged-in user from localStorage
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { user } = useUser();
 
  useEffect(() => {
     if (!user) {

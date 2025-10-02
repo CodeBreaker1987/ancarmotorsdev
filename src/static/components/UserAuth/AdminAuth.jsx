@@ -1,11 +1,14 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./AdminAuth.css";
 import { useUser } from "../../Context/UserContext.jsx";
+import { Navigate } from "react-router-dom";
 
 const AdminAuth = ({ setView, onClose }) => {
   const { login } = useUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleAdminSubmit = async (e) => {
     e.preventDefault();
@@ -22,6 +25,7 @@ const AdminAuth = ({ setView, onClose }) => {
       localStorage.setItem("user", JSON.stringify(fullUser));
       alert("✅ Admin login successful!");
       onClose();
+      navigate("/SalesDashboard");
     } catch (err) {
       alert("❌ Login failed: " + err.message);
     }
@@ -29,7 +33,7 @@ const AdminAuth = ({ setView, onClose }) => {
 
   return (
     <div className="admin-login">
-      <h2>Administrator Login</h2>
+      <h2>Company Member Login</h2>
       <form onSubmit={handleAdminSubmit}>
         <input
           type="text"

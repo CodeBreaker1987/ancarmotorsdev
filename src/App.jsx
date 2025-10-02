@@ -24,15 +24,7 @@ function AppContent() {
   const { setUser } = useUser();
   const isSalesDashboard = location.pathname === "/SalesDashboard";
 
-  useEffect(() => {
-    const handleUnload = () => {
-      localStorage.removeItem("user");
-    };
-    window.addEventListener("beforeunload", handleUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleUnload);
-    };
-  }, []);
+  // Removed beforeunload handler that cleared localStorage user
 
   // Overlay/modal state
   const [overlayOpen, setOverlayOpen] = React.useState(false);

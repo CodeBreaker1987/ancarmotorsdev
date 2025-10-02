@@ -8,7 +8,7 @@ import { useUser } from "../Context/UserContext.jsx";
 const Nav = ({ onOpenOverlay, onOpenRegister }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { user, setUser } = useUser();
+  const { user, logout } = useUser();
   const navigate = useNavigate();
 
   const handleMenuToggleOpen = () => setMenuOpen(!menuOpen);
@@ -19,11 +19,9 @@ const Nav = ({ onOpenOverlay, onOpenRegister }) => {
   const handleDropdownToggle = () => setDropdownOpen(!dropdownOpen);
 
   const handleSignOut = () => {
-    setUser(null);
     setMenuOpen(false);
     setDropdownOpen(false);
-    navigate("/", { replace: true });
-    window.location.reload();
+    logout(); // triggers confirmation modal
   };
 
   // ❌ Hide Nav completely for admin

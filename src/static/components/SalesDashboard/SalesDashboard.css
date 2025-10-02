@@ -37,6 +37,14 @@
   background-color: #dc2626;
 }
 
+.sales-dashboard .user-info {
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: row;
+  gap: 80px;
+  justify-content: center;
+}
+
 /* Orders Section */
 .orders-section {
   background: white;
@@ -220,7 +228,8 @@
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 18px 16px;
-  background: #f3f4f6;
+  margin: 50px 0;
+  background: #e6e6e6;
   box-shadow: 0 2px 8px rgba(79,70,229,0.04);
   transition: box-shadow 0.2s;
 }

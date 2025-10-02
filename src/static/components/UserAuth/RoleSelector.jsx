@@ -12,7 +12,7 @@ const RoleSelector = ({ setView }) => (
     </div>
     <div className="overlaybuttons">
       <button onClick={() => setView("customer")}>Customer</button>
-      <button onClick={() => setView("admin")}>Administrator</button>
+      <button onClick={() => setView("admin")}>Company Member</button>
     </div>
   </div>
 );

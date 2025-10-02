@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./AccountNav.css";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../../Context/UserContext.jsx";
 
 const AccountNav = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { user } = useUser();
 
   const [userData, setUserData] = useState({
     first_name: "",
