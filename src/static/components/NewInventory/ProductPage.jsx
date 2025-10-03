@@ -26,9 +26,9 @@ const ProductPage = () => {
     }
   }, [truck, location.pathname]);
 
-  // Restore from localStorage if truck is missing
+  // Restore from localStorage ONLY if routed from checkout
   useEffect(() => {
-    if (!truck) {
+    if (!truck && location.state && location.state.fromCheckout) {
       const saved = localStorage.getItem("lastProductPage");
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -37,7 +37,7 @@ const ProductPage = () => {
         }
       }
     }
-  }, [truck]);
+  }, [truck, location.state]);
 
   // Overlay open handlers
   const handleOpenOverlay = () => {

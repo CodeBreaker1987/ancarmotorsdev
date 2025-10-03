@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./CustomerAuth.css";
 import { useUser } from "../../Context/UserContext.jsx";
 
@@ -6,6 +7,8 @@ const CustomerAuth = ({ setView, onClose }) => {
   const { login } = useUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleCustomerSubmit = async (e) => {
     e.preventDefault();
@@ -32,6 +35,13 @@ const CustomerAuth = ({ setView, onClose }) => {
       login(fullUser, "customer");
       localStorage.setItem("user", JSON.stringify(fullUser));
       alert("✅ Customer login successful!");
+      // Redirect logic: if login was triggered by checkout, go to product page; else homepage
+      if (location.state && location.state.fromCheckout && location.state.productPath) {
+        navigate(location.state.productPath, { state: location.state.productState });
+      } else {
+        localStorage.removeItem("lastProductPage"); // clear last visited truck
+        navigate("/homeNav");
+      }
       onClose();
     } catch (err) {
       alert("❌ Login failed: " + err.message);

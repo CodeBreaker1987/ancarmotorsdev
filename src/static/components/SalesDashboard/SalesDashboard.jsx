@@ -387,12 +387,12 @@ export default function SalesDashboard() {
       {(userLevel === "top" || userLevel === "bottom") && (
         <section className="orders-section">
           <div className="orders-header">
-            <h2>Customer Orders</h2>
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <h2 style={{fontWeight: "bold", fontSize: "30px", color: "darkblue" }}>Customer Orders</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginLeft: "1rem" }}>
               <select
                 value={filterIdx}
                 onChange={(e) => setFilterIdx(Number(e.target.value))}
-                style={{ marginRight: "1rem" }}
+                style={{ marginLeft: "0.5rem", border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}
               >
                 {FILTERS.map((f, idx) => (
                   <option key={f.label} value={idx}>
@@ -406,24 +406,26 @@ export default function SalesDashboard() {
                 onChange={(e) => setMonth(e.target.value)}
               />
               {/* Search bar and sort dropdowns */}
+              <select value={searchField} onChange={e => setSearchField(e.target.value)} style={{ marginLeft: "2rem", border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}>
+                <option value="orderid">OrderID</option>
+                <option value="userid">UserID</option>
+                <option value="username">Username</option>
+              </select>
+
               <input
                 type="text"
                 placeholder={`Search by ${searchField.charAt(0).toUpperCase() + searchField.slice(1)}`}
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                style={{ marginLeft: "1rem", padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db" }}
+                style={{ marginLeft: "0", padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db" }}
               />
-              <select value={searchField} onChange={e => setSearchField(e.target.value)} style={{ marginLeft: "0.5rem" }}>
-                <option value="orderid">OrderID</option>
-                <option value="userid">UserID</option>
-                <option value="username">Username</option>
-              </select>
-              <select value={sortField} onChange={e => setSortField(e.target.value)} style={{ marginLeft: "1rem" }}>
+              
+              <select value={sortField} onChange={e => setSortField(e.target.value)} style={{ marginLeft: "0.5rem", border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}>
                 <option value="">Sort By</option>
                 <option value="userid">UserID</option>
                 <option value="username">Username</option>
               </select>
-              <button type="button" onClick={() => setSortAsc(a => !a)} style={{ marginLeft: "0.5rem", padding: "6px 10px", borderRadius: "6px", background: "#e5e7eb", border: "none", cursor: "pointer" }}>
+              <button type="button" onClick={() => setSortAsc(a => !a)} style={{ marginLeft: "0.5rem", padding: "4px 8px", borderRadius: "6px", background: "#5282e2ff", border: "none", cursor: "pointer", color: "white", fontWeight: "bold" }}>
                 {sortAsc ? "Asc" : "Desc"}
               </button>
               {/* Column toggle dropdown */}

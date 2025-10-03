@@ -1,5 +1,6 @@
 // src/static/components/HomePage/HomeNav.jsx
 import React, { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import "./HomeNav.css";
 import Header from "./Header";
 import Brand from "./Brand";
@@ -12,10 +13,11 @@ import { useUser } from "../../Context/UserContext";
 const HomeNav = () => {
   const { user } = useUser(); 
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Redirect if user just logged in
+  // Redirect to last truck product page ONLY if login was triggered by checkout
   useEffect(() => {
-    if (user) {
+    if (user && location.state && location.state.fromCheckout) {
       const lastProduct = localStorage.getItem("lastProductPage");
       if (lastProduct) {
         const { pathname, state } = JSON.parse(lastProduct);
@@ -23,7 +25,7 @@ const HomeNav = () => {
         localStorage.removeItem("lastProductPage");
       }
     }
-  }, [user, navigate]);
+  }, [user, navigate, location.state]);
 
   // Function to request overlay open from Nav (handled by App.jsx)
   const openOverlay = (view = "role") => {
