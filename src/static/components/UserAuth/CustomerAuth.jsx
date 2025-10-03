@@ -8,6 +8,9 @@ const CustomerAuth = ({ setView, onClose }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const location = useLocation();
+  // If opened from overlay event, merge overlay event state with location.state
+  const overlayState = window.__overlayState || {};
+  const mergedState = { ...location.state, ...overlayState };
   const navigate = useNavigate();
 
   const handleCustomerSubmit = async (e) => {
@@ -36,8 +39,8 @@ const CustomerAuth = ({ setView, onClose }) => {
       localStorage.setItem("user", JSON.stringify(fullUser));
       alert("✅ Customer login successful!");
       // Redirect logic: if login was triggered by checkout, go to product page; else homepage
-      if (location.state && location.state.fromCheckout && location.state.productPath) {
-        navigate(location.state.productPath, { state: location.state.productState });
+      if (mergedState && mergedState.fromCheckout && mergedState.productPath) {
+        navigate(mergedState.productPath, { state: mergedState.productState });
       } else {
         localStorage.removeItem("lastProductPage"); // clear last visited truck
         navigate("/homeNav");

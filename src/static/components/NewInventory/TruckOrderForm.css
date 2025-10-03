@@ -6,9 +6,18 @@
   width: 100%;
   max-width: 768px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  
 }
-@media (max-width: 600px) {
+
+.authprompt-popup-cancel {
+  position: absolute;
+  top: 250px;
+  right: 510px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+@media (max-width: 768px) {
   .truck-order-form {
     padding: 16px;
     margin: 16px auto;
@@ -64,20 +73,94 @@
   border: 1px solid #ccc;
 }
 
-.truck-order-form button {
-  background: #073996;
-  color: #fff;
+.UnitQuantity button {
+  margin: 0 8px;
+  padding: 4px 12px;
+  font-size: 16px;
   border: none;
   border-radius: 4px;
-  padding: 10px 20px;
-  font-size: 1rem;
+  background-color: #073996;
+  color: white;
   cursor: pointer;
-  margin-top: 12px;
-  transition: background 0.2s;
 }
 
-.truck-order-form button:hover {
-  background: #0a2a6b;
+.UnitQuantity button:hover {
+  background-color: #0a2a6b;
+  transition: background-color 0.3s;
+}
+
+.truck-order-form .Checkoutbutton {
+  background-color: #073996;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-top: 16px;
+}
+.truck-order-form .Checkoutbutton:hover {
+  background-color: #0a2a6b;
+  transition: background-color 0.3s;
+}
+
+.truck-order-confirmation .authprompt-popup-cancel {
+  position: absolute;
+  top: 270px;
+  background: #9a9a9a;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: background 0.2s, color 0.2s;
+  z-index: 10;
+}
+
+.truck-order-confirmation .authprompt-popup-cancel:hover {
+  background: #073996;
+  color: #fff;
+}
+
+.truck-order-confirmation .SignIn-button {
+  background-color: #073996;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-top: 16px;
+  margin-right: 16px;
+}
+
+.truck-order-confirmation .SignIn-button:hover {
+  background-color: #0a2a6b;
+  transition: background-color 0.3s;
+}
+
+.truck-order-confirmation .SignUp-button {
+  background-color: #ffffff;
+  color: #073996;
+  font-weight: bold;
+  border: 2px solid #073996;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+.truck-order-confirmation .SignUp-button:hover {
+  background-color: #073996;
+  color: white;
+  transition: background-color 0.3s;
 }
 
 .truck-order-popup {

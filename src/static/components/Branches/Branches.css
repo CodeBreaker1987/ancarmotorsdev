@@ -30,6 +30,20 @@
     border: none;
   }
 
+  .branchesContentHeader {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    margin-top: 20vh;
+    font-size: 70px;
+    font-weight: 600; 
+    text-shadow: #000000 2px 2px 5px;
+  }
+
+  .branchesContentDetails {
+    font-size: 16px;
+    font-weight: 400;
+    text-shadow: #000000 2px 3px 2.5px;
+    margin-bottom: 10px;
+  }
 /* Mobile Styles */
 @media (max-width: 768px) {
   .branchesContainer {
@@ -48,6 +62,8 @@
 
   .branchesContentHeader {
     font-size: 36px; /* Reduce large title size */
+    font-weight: 600; 
+    text-shadow: #000000 2px 2px 5px;
   }
 
   .branchesContentHeaderTagTitle {

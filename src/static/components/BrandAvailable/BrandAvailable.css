@@ -1,23 +1,4 @@
-@media (max-width: 768px) {
-    .parallaxBrandAvailable {
-      background-image: url("/src/assets/media/background.6f5a58ea9a57050f0323.jpg");
-      min-height: 60vh;
-      min-width: 100vh;
-      background-attachment: fixed;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: cover;
-      margin-top: 100px;
-    }
-    .brandAvailableImageContainer {
-      background-color: white;
-      display: block;
-      padding-top: 40px;
-      height: 100vh;
-      padding-bottom: 50px;
-      z-index: 0; 
-    }
-}
+
 .parallaxBrandAvailable {
     background-image: url("/src/assets/media/background.6f5a58ea9a57050f0323.jpg");
     min-height: 60vh;
@@ -46,7 +27,7 @@
     
   .bAvailableHeader{
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-    font-size: 60px;
+    font-size: 80px;
     color: white;
     font-weight: 600; 
     text-shadow: #000000 2px 2px 5px;
@@ -154,7 +135,6 @@
       font-size: 18px;
       cursor: pointer;
     }
-
 
     @media (max-width: 768px) {
 

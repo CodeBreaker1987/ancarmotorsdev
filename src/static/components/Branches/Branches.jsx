@@ -12,7 +12,7 @@ const Branches = () => {
 
 <div className='branchesContainerTitle'>
             <h1 className='branchesContentHeader'>ANCAR MOTORS BRANCHES</h1>
-            <p className='branchesContentDetails'>OUR NEAREST LOCATION IS AVAILABLE TO SERVE YOU QUICKLY</p>
+            <p className='branchesContentDetails'>OUR NEAREST LOCATION IS AVAILABLE TO SERVE YOU QUICKLY.</p>
           </div>
 
             <table className="branchesTableContainer">

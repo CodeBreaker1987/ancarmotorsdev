@@ -33,10 +33,13 @@ function AppContent() {
     const handleOpenOverlay = (e) => {
       setOverlayOpen(true);
       setOverlayView(e.detail?.view || "role");
+      // Store overlay state globally for redirect after login
+      window.__overlayState = e.detail || {};
     };
     window.addEventListener("openOverlay", handleOpenOverlay);
     return () => {
       window.removeEventListener("openOverlay", handleOpenOverlay);
+      window.__overlayState = undefined;
     };
   }, []);
 

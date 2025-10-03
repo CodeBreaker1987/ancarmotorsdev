@@ -103,7 +103,7 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
     e.preventDefault();
     if (!validateForm()) return; // Stop if validation fails
     if (!user) {
-      setShowAuthPrompt(true);
+      setShowAuthPrompt(true); // Show auth prompt first
       return;
     }
     setShowConfirmation(true);   // ✅ Only show confirmation if valid
@@ -381,7 +381,7 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
           </div>
         </fieldset>
 
-        <button type="submit" style={{ marginTop: 16 }}>
+        <button type="submit" className="Checkoutbutton">
           Checkout
         </button>
       </form>
@@ -392,7 +392,7 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
           <div className="truck-order-confirmation-box">
             <button
               type="button"
-              className="truck-order-popup-cancel"
+              className="authprompt-popup-cancel"
               onClick={() => setShowAuthPrompt(false)}
             >
               ×
@@ -401,20 +401,38 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
             <p>Sign Up or Login first before placing the order.</p>
             <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
               <button
-                type="button"
+                type="button" className="SignIn-button"
                 onClick={() => {
                   setShowAuthPrompt(false);
-                  onOpenOverlay?.();
+                  window.dispatchEvent(
+                    new CustomEvent("openOverlay", {
+                      detail: {
+                        view: "customer",
+                        fromCheckout: true,
+                        productPath: window.location.pathname,
+                        productState: { truck },
+                      },
+                    })
+                  );
                 }}
                 style={{ fontWeight: "bold", fontSize: 18 }}
               >
                 SIGN IN
               </button>
               <button
-                type="button"
+                type="button" className="SignUp-button"
                 onClick={() => {
                   setShowAuthPrompt(false);
-                  onOpenRegister?.();
+                  window.dispatchEvent(
+                    new CustomEvent("openOverlay", {
+                      detail: {
+                        view: "register",
+                        fromCheckout: true,
+                        productPath: window.location.pathname,
+                        productState: { truck },
+                      },
+                    })
+                  );
                 }}
                 style={{ fontWeight: "bold", fontSize: 18 }}
               >
@@ -482,10 +500,10 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
 
             {/* Action Buttons */}
             <div className="order-actions">
-              <button type="button" onClick={() => setShowConfirmation(false)}>
+              <button type="button" className="Change-order-button" onClick={() => setShowConfirmation(false)}>
                 Change Order
               </button>
-              <button type="button" onClick={handlePlaceOrder} disabled={sending}>
+              <button type="button" className="Place-order-button" onClick={handlePlaceOrder} disabled={sending}>
                 {sending ? "Placing Order..." : "Place Order"}
               </button>
             </div>
