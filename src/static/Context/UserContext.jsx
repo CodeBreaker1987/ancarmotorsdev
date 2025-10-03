@@ -10,7 +10,12 @@ export const UserProvider = ({ children }) => {
   // Load user from localStorage if it exists
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
+    if (!savedUser || savedUser === "undefined") return null;
+    try {
+      return JSON.parse(savedUser);
+    } catch {
+      return null;
+    }
   });
 
   const [overlayVisible, setOverlayVisible] = useState(!user); // hide overlay if user is logged in
