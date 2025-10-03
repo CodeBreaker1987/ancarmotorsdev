@@ -1,5 +1,6 @@
 // src/static/Context/UserContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 
 const UserContext = createContext();
 
@@ -129,7 +130,7 @@ export const UserProvider = ({ children }) => {
             <button style={{ marginTop: 32, padding: "10px 24px", borderRadius: 8, background: "#4F46E5", color: "#fff", border: "none", fontWeight: 600, cursor: "pointer" }}
               onClick={() => {
                 setSessionExpired(false);
-                window.location.href = "/";
+                Navigate("/"); // Redirect to homepage or login page
               }}
             >OK</button>
           </div>

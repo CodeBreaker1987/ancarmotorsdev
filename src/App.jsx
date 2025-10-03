@@ -21,10 +21,8 @@ import { UserProvider, useUser } from "./static/Context/UserContext";
 
 function AppContent() {
   const location = useLocation();
-  const { setUser } = useUser();
+  const { user, setUser } = useUser();
   const isSalesDashboard = location.pathname === "/SalesDashboard";
-
-  // Removed beforeunload handler that cleared localStorage user
 
   // Overlay/modal state
   const [overlayOpen, setOverlayOpen] = React.useState(false);
@@ -60,8 +58,13 @@ function AppContent() {
 
   return (
     <div className="App">
-      {!isSalesDashboard && <Nav onOpenOverlay={handleOpenOverlay}
-    onOpenRegister={handleOpenRegister} />}
+      {/* Always show Nav for logged-out users, except on SalesDashboard */}
+      {!isSalesDashboard && (
+        <Nav
+          onOpenOverlay={handleOpenOverlay}
+          onOpenRegister={handleOpenRegister}
+        />
+      )}
       <ScrollToTop />
 
       <div className="content">

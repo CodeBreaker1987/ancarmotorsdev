@@ -29,6 +29,7 @@ const AccountNav = () => {
   });
 
   const [passwordInput, setPasswordInput] = useState("");
+  const [showCriteria, setShowCriteria] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Helper: parse response safely
@@ -89,9 +90,37 @@ const AccountNav = () => {
     fetchUserData();
   }, []);
 
-  // Save a single field
+  // Validation helpers
+  const emailRegex = /^[\w.%+-]+@(gmail\.com|yahoo\.com|outlook\.com)$/i;
+  const phoneRegex = /^(\+639\d{9}|09\d{9})$/;
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
+
+  // Save a single field with validation
   const handleFieldSave = async (field) => {
     if (!user) return;
+
+    // Empty check
+    if (field !== "password" && !draftData[field].trim()) {
+      alert("Change Info failed: Cannot change to empty value!");
+      return;
+    }
+    // Email format check
+    if (field === "email_address" && !emailRegex.test(draftData[field])) {
+      alert("Change Email failed: Not a valid email address!");
+      return;
+    }
+    // Phone format check
+    if (field === "phone_number" && !phoneRegex.test(draftData[field])) {
+      alert("Change Phone Number failed: Not a valid phone number!");
+      return;
+    }
+    // Password format check
+    if (field === "password") {
+      if (!passwordRegex.test(passwordInput)) {
+        alert("Change Password failed: new password is invalid! please try again.");
+        return;
+      }
+    }
 
     try {
       const bodyData =
@@ -195,7 +224,7 @@ const AccountNav = () => {
       )}
 
       {/* Password (separate handling) */}
-      <div className="editable-field">
+      <div className="editable-field" style={{ position: "relative" }}>
         <strong>Password:</strong>
         {editMode.password ? (
           <>
@@ -205,6 +234,8 @@ const AccountNav = () => {
               onChange={(e) => setPasswordInput(e.target.value)}
               className="input-field"
               placeholder="Enter new password"
+              onFocus={() => setShowCriteria(true)}
+              onBlur={() => setShowCriteria(false)}
             />
             <button
               className="save-button"
@@ -217,10 +248,21 @@ const AccountNav = () => {
               onClick={() => {
                 setPasswordInput("");
                 setEditMode({ ...editMode, password: false });
+                setShowCriteria(false);
               }}
             >
               Cancel
             </button>
+            {/* Password criteria popup (right side) */}
+            {showCriteria && (
+              <div className="password-popup" style={{ position: "absolute", right: "-320px", top: 0, width: 300 }}>
+                <h4>Password must contain:</h4>
+                <p className={passwordInput.length >= 8 && passwordInput.length <= 16 ? "valid" : "invalid"}>✔ 8 – 16 characters</p>
+                <p className={/[A-Z]/.test(passwordInput) ? "valid" : "invalid"}>✔ At least 1 uppercase letter</p>
+                <p className={/\d/.test(passwordInput) ? "valid" : "invalid"}>✔ At least 1 number</p>
+                <p className={/[!@#$%^&*(),.?":{}|<>]/.test(passwordInput) ? "valid" : "invalid"}>✔ At least 1 symbol</p>
+              </div>
+            )}
           </>
         ) : (
           <>
