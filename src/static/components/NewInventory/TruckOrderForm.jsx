@@ -170,6 +170,20 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
         customer_phone: user.phone_number,
       };
 
+      // Log emailParams for debugging
+      console.log("EmailJS emailParams:", emailParams);
+
+      // Check for missing/empty required fields
+      const requiredFields = [
+        "orderid", "truck_model", "body_color", "payload_capacity", "transmission", "quantity", "base_price", "total_price", "shipping_option", "payment_method", "customer_name", "customer_email", "customer_address", "customer_phone"
+      ];
+      for (const field of requiredFields) {
+        if (emailParams[field] === undefined || emailParams[field] === "" || emailParams[field] === null) {
+          alert(`Failed to send confirmation email: Missing or empty field '${field}'. Please check your order and account info.`);
+          throw new Error(`EmailJS missing field: ${field}`);
+        }
+      }
+
       // 4️⃣ Send confirmation email via emailjs
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, emailParams, USER_ID);
 

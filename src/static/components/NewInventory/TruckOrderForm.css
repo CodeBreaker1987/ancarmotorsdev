@@ -163,6 +163,23 @@
   transition: background-color 0.3s;
 }
 
+.order-actions .Change-order-button, .Place-order-button {
+  background-color: #073996;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-top: 16px;
+  margin-right: 16px;
+}
+.order-actions .Change-order-button:hover, .Place-order-button:hover {
+  background-color: #0a2a6b;
+  transition: background-color 0.3s;
+}
+
 .truck-order-popup {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
