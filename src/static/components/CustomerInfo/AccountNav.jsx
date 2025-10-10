@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./AccountNav.css";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../Context/UserContext.jsx";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const AccountNav = () => {
   const navigate = useNavigate();
@@ -171,7 +172,11 @@ const AccountNav = () => {
 
   if (!user) return null;
 
-  if (loading) return <p>Loading account info...</p>;
+  if (loading){ return( <div className="user_info_loading">
+    <AiOutlineLoading3Quarters className="loading-spinner" />
+    <p>Loading account info...</p>
+    </div>);
+  }
 
   return (
     <div className="account-parallax">

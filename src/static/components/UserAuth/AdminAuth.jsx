@@ -25,7 +25,13 @@ const AdminAuth = ({ setView, onClose }) => {
       localStorage.setItem("user", JSON.stringify(fullUser));
       alert("✅ Admin login successful!");
       onClose();
-      navigate("/SalesDashboard");
+      // Determine if user is owner
+      const position = (fullUser.company_position || fullUser.position || "").toLowerCase();
+      if (position.includes("owner")) {
+        navigate("/OwnerDashboard");
+      } else {
+        navigate("/SalesDashboard");
+      }
     } catch (err) {
       alert("❌ Login failed: " + err.message);
     }

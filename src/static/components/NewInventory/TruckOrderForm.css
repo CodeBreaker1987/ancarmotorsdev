@@ -274,10 +274,11 @@
 .truck-order-confirmation-box {
   background: #fff;
   top: 100%;
+  margin-top: 200px;
   padding-left: 50px;
   padding-right: 80px;
   padding-bottom: 30px;
-  padding-top: 30px;
+  padding-top: 5px;
   border-radius: 10px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.15);
   min-width: 320px;
@@ -288,6 +289,12 @@
   padding-left: 40px;
 }
 
+.truck-order-confirmation-box h1{
+  font-size: 2.7rem;
+  margin-bottom: 16px;
+  margin-left: 40px;
+  text-align: center;
+}
 .truck-order-confirmation-box button{
   margin-left: 30px;
 }

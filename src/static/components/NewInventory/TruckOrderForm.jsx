@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import emailjs from "emailjs-com";
 import { useUser } from "../../Context/UserContext.jsx";
+import { useNavigate } from "react-router-dom";
 import "./TruckOrderForm.css";
 
 const SHIPPING = [
@@ -34,6 +35,7 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
   const [sending, setSending] = useState(false);
   const [showOrderSuccess, setShowOrderSuccess] = useState(false); // NEW: Success popup
   const formRef = useRef();
+  const navigate = useNavigate();
 
   // Reset form when truck changes
   useEffect(() => {
@@ -109,9 +111,39 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
     setShowConfirmation(true);   // ✅ Only show confirmation if valid
   };
 
+  // Store order details in sessionStorage for OTP/payment flow
   const handlePlaceOrder = async () => {
     if (!user) {
       alert("Please log in to place an order.");
+      return;
+    }
+
+    // For Bank Transfer or Loan/Installment, redirect to OTP Verification first
+    if (["Bank Transfer", "Loan or Installment"].includes(paymentMethod)) {
+      setShowConfirmation(false);
+
+      // Store order details in sessionStorage for retrieval after OTP
+      sessionStorage.setItem(
+        "pendingOrder",
+        JSON.stringify({
+          truck,
+          color,
+          payload,
+          lifting,
+          towing,
+          transmission,
+          quantity,
+          unitPrice,
+          totalPrice,
+          shipping,
+          shippingDate,
+          paymentMethod,
+          user,
+        })
+      );
+
+      // Go to OTP verification page
+      navigate("/OTPVerificationPage");
       return;
     }
 
@@ -122,7 +154,7 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
     const USER_ID = "OMnRruT1S-TVzXGJ-";
 
     try {
-      // 1️⃣ Insert order via Netlify function
+      // Step 1️⃣ Save the order to your DB
       const orderData = {
         userId: user.userid,
         username: user.username,
@@ -140,19 +172,39 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
         status: "Pending",
       };
 
-      const response = await fetch("/.netlify/functions/add_order", {
+      const orderResponse = await fetch("/.netlify/functions/add_order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
       });
 
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to save order");
+      const orderResult = await orderResponse.json();
+      if (!orderResponse.ok) throw new Error(orderResult.error || "Failed to save order");
 
+      // Step 2️⃣ Handle PayMongo checkout for banking or card methods
+      if (["Bank Transfer", "GCash", "Card"].includes(paymentMethod)) {
+        const paymongoResponse = await fetch("/.netlify/functions/create_payment_intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: totalPrice,
+            email: user.email_address,
+            description: `Truck Order - ${truck.description || truck.model}`,
+            orderId: orderResult.order?.orderid || "N/A",
+          }),
+        });
 
-      // 3️⃣ Prepare emailjs params
+        const paymongoResult = await paymongoResponse.json();
+        if (!paymongoResponse.ok) throw new Error(paymongoResult.error || "Failed to create PayMongo session");
+
+        // ✅ Redirect user to PayMongo checkout
+        window.location.href = paymongoResult.checkoutUrl;
+        return;
+      }
+
+      // Step 3️⃣ Otherwise, send email confirmation for non-online payments
       const emailParams = {
-        orderid: result.order?.orderid || "N/A",
+        orderid: orderResult.order?.orderid || "N/A",
         truck_model: truck.description || truck.model,
         body_color: color,
         payload_capacity: payload,
@@ -170,26 +222,10 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
         customer_phone: user.phone_number,
       };
 
-      // Log emailParams for debugging
-      console.log("EmailJS emailParams:", emailParams);
-
-      // Check for missing/empty required fields
-      const requiredFields = [
-        "orderid", "truck_model", "body_color", "payload_capacity", "transmission", "quantity", "base_price", "total_price", "shipping_option", "payment_method", "customer_name", "customer_email", "customer_address", "customer_phone"
-      ];
-      for (const field of requiredFields) {
-        if (emailParams[field] === undefined || emailParams[field] === "" || emailParams[field] === null) {
-          alert(`Failed to send confirmation email: Missing or empty field '${field}'. Please check your order and account info.`);
-          throw new Error(`EmailJS missing field: ${field}`);
-        }
-      }
-
-      // 4️⃣ Send confirmation email via emailjs
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, emailParams, USER_ID);
 
       setShowConfirmation(false);
       setShowOrderSuccess(true);
-
       if (onOrderPlaced) onOrderPlaced({ truck, customer: user, totalPrice });
 
     } catch (err) {
@@ -199,6 +235,7 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
       setSending(false);
     }
   };
+
 
   if (!truck) return <p>Please select a truck from the inventory to order.</p>;
 
@@ -470,15 +507,6 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
             </button>
 
             <h1>Order Confirmation</h1>
-
-            {/* Truck Image */}
-            {truck.image && (
-              <div className="truck-image">
-                <img src={truck.image} alt={truck.description || truck.model} />
-              </div>
-            )}
-
-            {/* Selected Specifications */}
             <div className="truck-specs">
               <h3>Selected Specifications:</h3>
               <ol>
@@ -518,7 +546,7 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
                 Change Order
               </button>
               <button type="button" className="Place-order-button" onClick={handlePlaceOrder} disabled={sending}>
-                {sending ? "Placing Order..." : "Place Order"}
+                Place Order
               </button>
             </div>
           </div>

@@ -176,6 +176,7 @@ function PieChartBoxStatic({ title, data, showAmount, monthOrders }) {
   );
 }
 
+
 export default function SalesDashboard() {
   const { user, setUser } = useUser();
   const navigate = useNavigate();
@@ -221,6 +222,9 @@ export default function SalesDashboard() {
   const [searchField, setSearchField] = useState("orderid");
   const [sortField, setSortField] = useState("");
   const [sortAsc, setSortAsc] = useState(true);
+  // Pagination state for orders table
+  const [ordersPage, setOrdersPage] = useState(0);
+  const ORDERS_PER_PAGE = 10;
   // Management level logic
   const positionLevels = {
     "ceo": "top",
@@ -230,6 +234,7 @@ export default function SalesDashboard() {
     "sales manager": "middle",
     "it technician": "bottom",
     "sales agent": "bottom",
+    "owner": "owner",
     // Add more positions as needed
   };
   function getManagementLevel(position) {
@@ -287,6 +292,11 @@ export default function SalesDashboard() {
     fetchOrders();
   }, [user, month]);
 
+  // Reset to first page when filter/search/sort/month changes
+  useEffect(() => {
+    setOrdersPage(0);
+  }, [filterIdx, searchTerm, searchField, sortField, sortAsc, month]);
+
   // Removed code that clears user from localStorage on unload/refresh
 
   const { logout } = useUser();
@@ -340,6 +350,14 @@ export default function SalesDashboard() {
     return filtered;
   }, [orders, filterIdx, searchTerm, searchField, sortField, sortAsc]);
 
+  // Pagination: slice filteredOrders for current page
+  const paginatedOrders = useMemo(() => {
+    const start = ordersPage * ORDERS_PER_PAGE;
+    return filteredOrders.slice(start, start + ORDERS_PER_PAGE);
+  }, [filteredOrders, ordersPage]);
+
+  const totalPages = Math.ceil(filteredOrders.length / ORDERS_PER_PAGE);
+
   // --- Sales Data for Truck Model Pie Charts ---
   const monthOrders = useMemo(() =>
     orders.filter(o => o.order_timestamp.startsWith(month)), [orders, month]);
@@ -369,6 +387,27 @@ export default function SalesDashboard() {
   
   return (
     <div className="sales-dashboard">
+       {/* Return Button for Owner */}
+      {user?.company_position?.toLowerCase() === "owner" && (
+        <div style={{ margin: "24px 0 0 0", display: "flex", justifyContent: "flex-start" }}>
+          <button
+            style={{
+              padding: "10px 28px",
+              borderRadius: 8,
+              background: "#4F46E5",
+              color: "#fff",
+              border: "none",
+              fontWeight: 600,
+              fontSize: "1rem",
+              cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(79,70,229,0.08)"
+            }}
+            onClick={() => navigate("/OwnerDashboard")}
+          >
+            Return to Overview
+          </button>
+        </div>
+      )}
       <header className="dashboard-header">
         <img src={AncarLogo} alt="Ancar Motors Logo" className="logo" />
         <h1>Company Sales Dashboard</h1>
@@ -376,6 +415,9 @@ export default function SalesDashboard() {
           Sign Out
         </button>
       </header>
+
+     
+
     <div className="user-info">
       <p>Welcome, <strong>{user.first_name} {user.last_name}</strong> ({user.company_position || user.position})</p>
       <p>Management Level: <strong>{userLevel.charAt(0).toUpperCase() + userLevel.slice(1)}</strong></p>
@@ -384,7 +426,7 @@ export default function SalesDashboard() {
     </div>
 
       {/* Orders Table Section - Only for Top & Bottom Level */}
-      {(userLevel === "top" || userLevel === "bottom") && (
+      {(userLevel === "top" || userLevel === "bottom" || userLevel ==="owner") && (
         <section className="orders-section">
           <div className="orders-header">
             <h2 style={{fontWeight: "bold", fontSize: "30px", color: "darkblue" }}>Customer Orders</h2>
@@ -467,8 +509,8 @@ export default function SalesDashboard() {
                   <tr>
                     <td colSpan={22}>Loading...</td>
                   </tr>
-                ) : filteredOrders.length > 0 ? (
-                  filteredOrders.map((o) => (
+                ) : paginatedOrders.length > 0 ? (
+                  paginatedOrders.map((o) => (
                     <tr key={o.orderid}>
                       <td>{o.orderid}</td>
                       <td>{new Date(o.order_timestamp).toLocaleString()}</td>
@@ -495,12 +537,51 @@ export default function SalesDashboard() {
                 )}
               </tbody>
             </table>
+            {/* Pagination Controls */}
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 16, gap: 16, flexWrap: "wrap" }}>
+              <button
+                onClick={() => setOrdersPage(p => Math.max(0, p - 1))}
+                disabled={ordersPage === 0}
+                style={{ padding: "6px 16px", borderRadius: 6, border: "1px solid #d1d5db", background: ordersPage === 0 ? "#f3f4f6" : "#2563eb", color: ordersPage === 0 ? "#888" : "#fff", fontWeight: 600, cursor: ordersPage === 0 ? "not-allowed" : "pointer" }}
+              >
+                ◀ Previous
+              </button>
+              {/* Page Numbers */}
+              <div style={{ display: "flex", gap: 4 }}>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setOrdersPage(i)}
+                    style={{
+                      minWidth: 32,
+                      padding: "6px 10px",
+                      borderRadius: 6,
+                      border: ordersPage === i ? "2px solid #2563eb" : "1px solid #d1d5db",
+                      background: ordersPage === i ? "#2563eb" : "#fff",
+                      color: ordersPage === i ? "#fff" : "#222",
+                      fontWeight: ordersPage === i ? 700 : 500,
+                      cursor: ordersPage === i ? "default" : "pointer"
+                    }}
+                    disabled={ordersPage === i}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setOrdersPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={ordersPage >= totalPages - 1 || totalPages === 0}
+                style={{ padding: "6px 16px", borderRadius: 6, border: "1px solid #d1d5db", background: (ordersPage >= totalPages - 1 || totalPages === 0) ? "#f3f4f6" : "#2563eb", color: (ordersPage >= totalPages - 1 || totalPages === 0) ? "#888" : "#fff", fontWeight: 600, cursor: (ordersPage >= totalPages - 1 || totalPages === 0) ? "not-allowed" : "pointer" }}
+              >
+                Next ▶
+              </button>
+            </div>
           </div>
         </section>
       )}
 
       {/* Sales Charts Section - Only for Top & Middle Level */}
-      {(userLevel === "top" || userLevel === "middle") && (
+      {(userLevel === "top" || userLevel === "middle" || userLevel ==="owner") && (
         <section className="sales-section">
           <div className="sales-header">
             <h2>Sales Data — {month}</h2>
@@ -556,7 +637,7 @@ export default function SalesDashboard() {
                 margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis dataKey="name" fontSize={12}/>
                 <YAxis allowDecimals={false} />
                 <Tooltip />
                 <Legend />
@@ -594,7 +675,7 @@ export default function SalesDashboard() {
                 margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis dataKey="name" fontSize={12}/>
                 <YAxis yAxisId="left" allowDecimals={false} />
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />

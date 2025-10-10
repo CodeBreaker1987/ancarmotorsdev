@@ -16,7 +16,9 @@ import Branches from "./static/components/Branches/Branches";
 import ProductPage from "./static/components/NewInventory/ProductPage";
 import AccountNav from "./static/components/CustomerInfo/AccountNav.jsx";
 import OrderNav from "./static/components/CustomerInfo/OrderNav";
+import OwnerDashboard from "./static/components/SalesDashboard/OwnerDashboard";
 import SalesDashboard from "./static/components/SalesDashboard/SalesDashboard";
+import OTPVerificationPage from "./static/components/OTPVerification/OtpVerificationPage.jsx";
 import { UserProvider, useUser } from "./static/Context/UserContext";
 
 function AppContent() {
@@ -83,6 +85,8 @@ function AppContent() {
           <Route path="/AccountNav" element={<AccountNav />} />
           <Route path="/OrderNav" element={<OrderNav />} />
           <Route path="/SalesDashboard" element={<SalesDashboard />} />
+          <Route path="/OwnerDashboard" element={<OwnerDashboard />} />  
+          <Route path="/OTPVerificationPage" element={<OTPVerificationPage />} />
         </Routes>
       </div>
 
