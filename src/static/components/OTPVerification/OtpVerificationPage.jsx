@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import "./OtpVerificationPage.css";
 
 export default function OtpVerificationPage() {
   const navigate = useNavigate();
-  // Retrieve order details and user from sessionStorage
   const pendingOrder = JSON.parse(sessionStorage.getItem("pendingOrder") || "{}");
   const { user } = pendingOrder;
 
@@ -25,6 +25,7 @@ export default function OtpVerificationPage() {
     setResendTimer(30);
     setCanResend(false);
 
+
     if (chosenMethod === "sms") {
       await fetch("/.netlify/functions/send_sms_otp", {
         method: "POST",
@@ -35,11 +36,12 @@ export default function OtpVerificationPage() {
       const time = expiry.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       await fetch("/.netlify/functions/send_email_otp", {
         method: "POST",
-        body: JSON.stringify({ email: user.email_address, passcode: generatedOtp, time }),
+          headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email_address, otp: generatedOtp }),
       });
     }
   };
-
+  
   // Timer for OTP expiry
   useEffect(() => {
     if (timer <= 0) return;
@@ -96,6 +98,17 @@ export default function OtpVerificationPage() {
     setVerifying(false);
   };
 
+  // If user/order info is missing, show error or redirect
+  if (!user) {
+    return (
+      <div className="otp-verification-container">
+        <h2>OTP Verification</h2>
+        <p style={{ color: "#ef4444" }}>Order information missing. Please restart your order process.</p>
+        <button onClick={() => navigate("/")}>Go to Home</button>
+      </div>
+    );
+  }
+
   return (
     <div className="otp-verification-container">
       <h2>OTP Verification</h2>
@@ -117,14 +130,14 @@ export default function OtpVerificationPage() {
           <button onClick={handleVerify} disabled={timer <= 0 || verifying}>
             {verifying ? "Verifying..." : "Verify OTP"}
           </button>
-          <div>
+          <div className="timer">
             {timer > 0 ? (
               <span>OTP expires in {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, "0")}</span>
             ) : (
               <span>OTP expired. Please resend.</span>
             )}
           </div>
-          <button onClick={() => sendOtp(method)} disabled={!canResend}>
+          <button className="resend-btn" onClick={() => sendOtp(method)} disabled={!canResend}>
             {canResend ? "Resend OTP" : `Resend in ${resendTimer}s`}
           </button>
           {error && <div style={{ color: "red" }}>{error}</div>}

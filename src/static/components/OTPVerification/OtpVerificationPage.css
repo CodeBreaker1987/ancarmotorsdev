@@ -1,0 +1,79 @@
+/* OtpVerificationPage.css */
+
+.otp-verification-container {
+  max-width: 400px;
+  margin: 100px auto;
+  background: #f3f4f6;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  padding: 2rem 2.5rem;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.otp-verification-container h2 {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #2563eb;
+}
+
+.otp-verification-container p {
+  margin-bottom: 1rem;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.otp-verification-container input[type="text"] {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1.2rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.otp-verification-container input[type="text"]:focus {
+  border-color: #2563eb;
+}
+
+.otp-verification-container button {
+  width: 100%;
+  padding: 0.75rem 0;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: background 0.2s;
+}
+
+.otp-verification-container button:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.otp-verification-container .resend-btn {
+  background: #f59e0b;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.otp-verification-container .error {
+  color: #ef4444;
+  font-size: 0.98rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.otp-verification-container .timer {
+  text-align: center;
+  font-size: 1rem;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
