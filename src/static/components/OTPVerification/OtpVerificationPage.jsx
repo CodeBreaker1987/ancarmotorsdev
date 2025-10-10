@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./OtpVerificationPage.css";
+import emailjs from "@emailjs/browser";
+
+const sendOtpEmail = async (userEmail, otpCode) => {
+  try {
+    await emailjs.send(
+      "service_y38zirj", // Your Service ID
+      "template_y2wdzzu", // Your Template ID
+      {
+        email: userEmail,
+        otp: otpCode, // Use the variable name as in your EmailJS template
+      },
+      "sz7Yc08eGlZ6qlCfl" // Replace with your EmailJS public key
+    );
+    console.log("OTP sent successfully!");
+  } catch (error) {
+    console.error("Failed to send OTP:", error);
+  }
+};
 
 export default function OtpVerificationPage() {
   const navigate = useNavigate();
@@ -25,20 +43,14 @@ export default function OtpVerificationPage() {
     setResendTimer(30);
     setCanResend(false);
 
-
     if (chosenMethod === "sms") {
       await fetch("/.netlify/functions/send_sms_otp", {
         method: "POST",
         body: JSON.stringify({ phone: user.phone_number, otp: generatedOtp }),
       });
     } else {
-      const expiry = new Date(Date.now() + 10 * 60 * 1000);
-      const time = expiry.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      await fetch("/.netlify/functions/send_email_otp", {
-        method: "POST",
-          headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email_address, otp: generatedOtp }),
-      });
+      // Send OTP email directly from frontend
+      await sendOtpEmail(user.email_address, generatedOtp);
     }
   };
   
