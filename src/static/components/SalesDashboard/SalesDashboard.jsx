@@ -278,7 +278,7 @@ export default function SalesDashboard() {
         const res = await fetch("/.netlify/functions/get_all_orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ month }),
+          body: JSON.stringify({}),
         });
         if (!res.ok) throw new Error("Failed to fetch orders");
         const data = await res.json();
@@ -297,7 +297,6 @@ export default function SalesDashboard() {
     setOrdersPage(0);
   }, [filterIdx, searchTerm, searchField, sortField, sortAsc, month]);
 
-  // Removed code that clears user from localStorage on unload/refresh
 
   const { logout } = useUser();
   const handleLogout = () => {
@@ -637,7 +636,7 @@ export default function SalesDashboard() {
                 margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" fontSize={12}/>
+                <XAxis dataKey="name" fontSize={12} interval={0} angle={-20} textAnchor="end" height={70}/>
                 <YAxis allowDecimals={false} />
                 <Tooltip />
                 <Legend />
@@ -666,25 +665,7 @@ export default function SalesDashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* --- Pareto Chart: Truck Models Contribution to Sales --- */}
-          <div className="chart-box">
-            <h3>Pareto Chart: Truck Models Contribution</h3>
-            <ResponsiveContainer width="100%" height={260}>
-              <ComposedChart
-                data={getParetoData(orders)}
-                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" fontSize={12}/>
-                <YAxis yAxisId="left" allowDecimals={false} />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
-                <Legend />
-                <Bar yAxisId="left" dataKey="value" fill="#6366F1" />
-                <Line yAxisId="right" type="monotone" dataKey="cumulative" stroke="#EF4444" />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
+          
 
           {/* --- Map Chart: Sales by Region/Province/City (skipped unless region data exists) --- */}
           {/* If you have region/city data, you can use recharts ScatterChart or a map library here. */}
@@ -702,37 +683,47 @@ function getSalesGrowthData(orders) {
     { key: "Forward", models: FORWARD_MODELS },
     { key: "Giga", models: GIGA_MODELS }
   ];
-  // Get all months in data
-  const months = Array.from(new Set(
-    orders
-      .filter(o => o.status === "Completed")
-      .map(o => o.order_timestamp.slice(0, 7))
-  )).sort();
+
+  // Get all months in data, and fill in missing months up to current
+  const completedOrders = orders.filter(o => o.status === "Completed");
+  const orderMonths = completedOrders.map(o => o.order_timestamp.slice(0, 7));
+  const uniqueMonths = Array.from(new Set(orderMonths));
+  uniqueMonths.sort();
+
+  // Fill in missing months between earliest and current month
+  const now = new Date();
+  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  let months = [];
+  if (uniqueMonths.length > 0) {
+    let [startYear, startMonth] = uniqueMonths[0].split("-");
+    startYear = Number(startYear);
+    startMonth = Number(startMonth);
+    let [endYear, endMonth] = currentMonthStr.split("-");
+    endYear = Number(endYear);
+    endMonth = Number(endMonth);
+
+    let y = startYear, m = startMonth;
+    while (y < endYear || (y === endYear && m <= endMonth)) {
+      months.push(`${y}-${String(m).padStart(2, "0")}`);
+      m++;
+      if (m > 12) {
+        m = 1;
+        y++;
+      }
+    }
+  } else {
+    months = [currentMonthStr];
+  }
+
   return months.map(month => {
     const obj = { period: month };
     series.forEach(s => {
-      obj[s.key] = orders.filter(o => o.status === "Completed" && o.order_timestamp.startsWith(month) && s.models.includes(o.truck_model)).reduce((sum, o) => sum + (o.quantity || 1), 0);
+      obj[s.key] = orders.filter(o =>
+        o.status === "Completed" &&
+        o.order_timestamp.startsWith(month) &&
+        s.models.includes(o.truck_model)
+      ).reduce((sum, o) => sum + (o.quantity || 1), 0);
     });
     return obj;
   });
-}
-
-// Helper for pareto chart: truck models contribution to sales
-function getParetoData(orders) {
-  // Sum sold units per model
-  const sold = orders.filter(o => o.status === "Completed");
-  const modelCounts = {};
-  sold.forEach(o => {
-    modelCounts[o.truck_model] = (modelCounts[o.truck_model] || 0) + (o.quantity || 1);
-  });
-  const arr = Object.entries(modelCounts).map(([name, value]) => ({ name, value }));
-  arr.sort((a, b) => b.value - a.value);
-  // Cumulative percentage
-  const total = arr.reduce((sum, x) => sum + x.value, 0);
-  let cum = 0;
-  arr.forEach(x => {
-    cum += x.value;
-    x.cumulative = Math.round((cum / total) * 100);
-  });
-  return arr;
 }
