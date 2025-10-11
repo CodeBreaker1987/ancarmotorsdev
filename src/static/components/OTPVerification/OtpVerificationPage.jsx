@@ -6,13 +6,13 @@ import emailjs from "@emailjs/browser";
 const sendOtpEmail = async (userEmail, otpCode) => {
   try {
     await emailjs.send(
-      "service_y38zirj", // Your Service ID
-      "template_y2wdzzu", // Your Template ID
+      "service_y38zirj",
+      "template_y2wdzzu",
       {
         email: userEmail,
-        otp: otpCode, // Use the variable name as in your EmailJS template
+        otp: otpCode,
       },
-      "sz7Yc08eGlZ6qlCfl" // Replace with your EmailJS public key
+      "sz7Yc08eGlZ6qlCfl"
     );
     console.log("OTP sent successfully!");
   } catch (error) {
@@ -49,11 +49,10 @@ export default function OtpVerificationPage() {
         body: JSON.stringify({ phone: user.phone_number, otp: generatedOtp }),
       });
     } else {
-      // Send OTP email directly from frontend
       await sendOtpEmail(user.email_address, generatedOtp);
     }
   };
-  
+
   // Timer for OTP expiry
   useEffect(() => {
     if (timer <= 0) return;
@@ -82,22 +81,36 @@ export default function OtpVerificationPage() {
           unitPrice, totalPrice, shipping, shippingDate, paymentMethod, user
         } = pendingOrder;
 
-        // Optionally, you can save the order to DB here if needed
+        // Rename payload to checkoutPayload to avoid redeclaration error
+        const checkoutPayload = {
+          data: {
+            attributes: {
+              billing: {
+                name: `${user.first_name} ${user.last_name}`,
+                email: user.email_address,
+                phone: user.phone_number,
+              },
+              amount: totalPrice * 100, // PayMongo expects centavos
+              description: `Truck Order - ${truck.description || truck.model}`,
+              redirect: {
+                success: `${window.location.origin}/paymongo-success`,
+                failed: `${window.location.origin}/paymongo-fail`
+              },
+              type: "payment",
+              currency: "PHP"
+            }
+          }
+        };
 
-        // Create PayMongo payment intent
-        const paymongoResponse = await fetch("/.netlify/functions/create_payment_intent", {
+        // Call Netlify function to create checkout session
+        const paymongoResponse = await fetch("/.netlify/functions/create_checkout_session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount: totalPrice,
-            email: user.email_address,
-            description: `Truck Order - ${truck.description || truck.model}`,
-            orderId: "N/A", // You can update this if you want to save order first
-          }),
+          body: JSON.stringify(checkoutPayload),
         });
 
         const paymongoResult = await paymongoResponse.json();
-        if (!paymongoResponse.ok) throw new Error(paymongoResult.error || "Failed to create PayMongo session");
+        if (!paymongoResponse.ok) throw new Error(paymongoResult.error || "Failed to create PayMongo checkout session");
 
         // Redirect user to PayMongo checkout
         window.location.href = paymongoResult.checkoutUrl;

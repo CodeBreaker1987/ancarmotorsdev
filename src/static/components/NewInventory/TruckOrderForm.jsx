@@ -19,6 +19,8 @@ const PAYMENT_METHODS = [
 
 const today = new Date().toISOString().split("T")[0];
 
+const SITE_URL = process.env.SITE_URL || "https://ancarmotorsdev.netlify.app"; // or your domain
+
 export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, onOpenOverlay, onOpenRegister }) {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const { user } = useUser(); // logged-in user from PostgreSQL
@@ -183,21 +185,38 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
 
       // Step 2️⃣ Handle PayMongo checkout for banking or card methods
       if (["Bank Transfer", "GCash", "Card"].includes(paymentMethod)) {
-        const paymongoResponse = await fetch("/.netlify/functions/create_payment_intent", {
+        // Prepare the payload for PayMongo Checkout API
+        const payload = {
+          data: {
+            attributes: {
+              billing: {
+                name: `${user.first_name} ${user.last_name}`,
+                email: user.email_address,
+                phone: user.phone_number,
+              },
+              amount: totalPrice * 100, // PayMongo expects centavos
+              description: `Truck Order - ${truck.description || truck.model}`,
+              redirect: {
+                success: `${SITE_URL}/paymongo-success`,
+                failed: `${SITE_URL}/paymongo-fail`
+              },
+              type: "payment",
+              currency: "PHP"
+            }
+          }
+        };
+
+        // Call your Netlify function to create a checkout session
+        const paymongoResponse = await fetch("/.netlify/functions/create_checkout_session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount: totalPrice,
-            email: user.email_address,
-            description: `Truck Order - ${truck.description || truck.model}`,
-            orderId: orderResult.order?.orderid || "N/A",
-          }),
+          body: JSON.stringify(payload),
         });
 
         const paymongoResult = await paymongoResponse.json();
-        if (!paymongoResponse.ok) throw new Error(paymongoResult.error || "Failed to create PayMongo session");
+        if (!paymongoResponse.ok) throw new Error(paymongoResult.error || "Failed to create PayMongo checkout session");
 
-        // ✅ Redirect user to PayMongo checkout
+        // Redirect user to PayMongo checkout
         window.location.href = paymongoResult.checkoutUrl;
         return;
       }
