@@ -14,12 +14,10 @@ const PAYMENT_METHODS = [
   "Bank Transfer",
   "Cash Payment",
   "Check Payment",
-  "Loan or Installment",
+  "Installment",
 ];
 
 const today = new Date().toISOString().split("T")[0];
-
-const SITE_URL = process.env.SITE_URL || "https://ancarmotorsdev.netlify.app"; // or your domain
 
 export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, onOpenOverlay, onOpenRegister }) {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);

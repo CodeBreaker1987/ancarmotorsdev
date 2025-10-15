@@ -23,7 +23,7 @@ const sendOtpEmail = async (userEmail, otpCode) => {
 export default function OtpVerificationPage() {
   const navigate = useNavigate();
   const pendingOrder = JSON.parse(sessionStorage.getItem("pendingOrder") || "{}");
-  const { user } = pendingOrder;
+  const { user, truck, totalPrice, paymentMethod } = pendingOrder;
 
   const [otp, setOtp] = useState("");
   const [sentOtp, setSentOtp] = useState("");
@@ -74,49 +74,14 @@ export default function OtpVerificationPage() {
     setVerifying(true);
     setError("");
     if (otp === sentOtp && timer > 0) {
-      // OTP verified, now create PayMongo checkout session
-      try {
-        const {
-          truck, color, payload, lifting, towing, transmission, quantity,
-          unitPrice, totalPrice, shipping, shippingDate, paymentMethod, user
-        } = pendingOrder;
-
-        // Rename payload to checkoutPayload to avoid redeclaration error
-        const checkoutPayload = {
-          data: {
-            attributes: {
-              billing: {
-                name: `${user.first_name} ${user.last_name}`,
-                email: user.email_address,
-                phone: user.phone_number,
-              },
-              amount: totalPrice * 100, // PayMongo expects centavos
-              description: `Truck Order - ${truck.description || truck.model}`,
-              redirect: {
-                success: `${window.location.origin}/paymongo-success`,
-                failed: `${window.location.origin}/paymongo-fail`
-              },
-              type: "payment",
-              currency: "PHP"
-            }
-          }
-        };
-
-        // Call Netlify function to create checkout session
-        const paymongoResponse = await fetch("/.netlify/functions/create_checkout_session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(checkoutPayload),
-        });
-
-        const paymongoResult = await paymongoResponse.json();
-        if (!paymongoResponse.ok) throw new Error(paymongoResult.error || "Failed to create PayMongo checkout session");
-
-        // Redirect user to PayMongo checkout
-        window.location.href = paymongoResult.checkoutUrl;
-      } catch (err) {
-        setError("Failed to initialize payment. Please try again.");
-      }
+      // OTP verified, redirect to PaymentNav with order details
+      navigate("/PaymentNav", {
+        state: {
+          paymentMethod,
+          truck,
+          totalPrice,
+        },
+      });
     } else {
       setError("Invalid or expired OTP.");
     }

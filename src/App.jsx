@@ -19,9 +19,8 @@ import OrderNav from "./static/components/CustomerInfo/OrderNav";
 import OwnerDashboard from "./static/components/SalesDashboard/OwnerDashboard";
 import SalesDashboard from "./static/components/SalesDashboard/SalesDashboard";
 import OTPVerificationPage from "./static/components/OTPVerification/OtpVerificationPage.jsx";
+import PaymentNav from "./static/components/Payment/PaymentNav";
 import { UserProvider, useUser } from "./static/Context/UserContext";
-import PayMongoSuccess from "./static/components/Payment/PayMongoSuccess.jsx";
-import PayMongoFail from "./static/components/Payment/PayMongoFail.jsx";
 
 function AppContent() {
   const location = useLocation();
@@ -89,8 +88,9 @@ function AppContent() {
           <Route path="/SalesDashboard" element={<SalesDashboard />} />
           <Route path="/OwnerDashboard" element={<OwnerDashboard />} />  
           <Route path="/OTPVerificationPage" element={<OTPVerificationPage />} />
-          <Route path="/paymongo-success" element={<PayMongoSuccess />} />
-          <Route path="/paymongo-fail" element={<PayMongoFail />} />
+          <Route path="/PaymentNav" element={<PaymentNav />} />
+          <Route path="/PaymentSuccess" element={<PaymentNav />} />
+          <Route path="/PaymentFailed" element={<PaymentNav />} />
         </Routes>
       </div>
 
