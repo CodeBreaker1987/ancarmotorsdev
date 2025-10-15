@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import "./InstallmentPay.css";
 
 // --- Installment Payment Page ---
-export function InstallmentPay({ amount, onSuccess, onFail }) {
+export default function InstallmentPay({ amount, onSuccess, onFail }) {
   const [payType, setPayType] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -42,7 +43,7 @@ export function InstallmentPay({ amount, onSuccess, onFail }) {
 
   return (
     <div className="installment-pay-container">
-      <h2>Installment Payment</h2>
+      <h2>INSTALLMENT PAYMENT FORM</h2>
       <form onSubmit={handleSubmit}>
         <label>
           Select Payment Option:
@@ -56,7 +57,21 @@ export function InstallmentPay({ amount, onSuccess, onFail }) {
           <>
             <label>
               Card Number:
-              <input type="text" value={cardNumber} onChange={e => setCardNumber(e.target.value)} required />
+              <input
+                type="text"
+                value={cardNumber}
+                onChange={e => {
+                  // Allow only numbers and spaces, max 24 digits
+                  let val = e.target.value.replace(/[^\d ]/g, "");
+                  val = val.replace(/(\d{24})\d*/, "$1");
+                  setCardNumber(val);
+                }}
+                required
+                maxLength={29}
+                inputMode="numeric"
+                pattern="[0-9 ]*"
+                placeholder="Enter card number"
+              />
             </label>
             <label>
               CardHolder Name:
@@ -68,7 +83,20 @@ export function InstallmentPay({ amount, onSuccess, onFail }) {
             </label>
             <label>
               CVV:
-              <input type="password" value={cvv} onChange={e => setCvv(e.target.value)} required maxLength={4} />
+              <input
+                type="text"
+                value={cvv}
+                onChange={e => {
+                  let val = e.target.value.replace(/[^\d]/g, "");
+                  val = val.slice(0, 4);
+                  setCvv(val);
+                }}
+                required
+                maxLength={4}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="CVV"
+              />
             </label>
           </>
         )}

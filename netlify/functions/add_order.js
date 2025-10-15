@@ -1,7 +1,6 @@
 // netlify/functions/add_order.js
 import pkg from "pg";
 const { Pool } = pkg;
-import fetch from "node-fetch";
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -41,7 +40,6 @@ export async function handler(event, context) {
       payment_method,
       status,
       shippingDate,
-      paymentmongo_ref,
     } = data;
 
     // 🧩 Basic validation
@@ -52,7 +50,7 @@ export async function handler(event, context) {
       };
     }
 
-    // ✅ Insert order into database (first)
+    // ✅ Insert order into database
     const insertQuery = `
       INSERT INTO public.orders (
         userid,
@@ -71,7 +69,7 @@ export async function handler(event, context) {
         status
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14
-      ) RETURNING UserId;
+      ) RETURNING userid;
     `;
 
     const values = [
@@ -92,47 +90,7 @@ export async function handler(event, context) {
     ];
 
     const result = await pool.query(insertQuery, values);
-    const orderId = result.rows[0].id;
-
-    // ✅ Create PayMongo Payment Link
-    const paymongoResponse = await fetch("https://api.paymongo.com/v1/links", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${Buffer.from(process.env.PAYMONGO_SECRET_KEY + ":").toString("base64")}`,
-      },
-      body: JSON.stringify({
-        data: {
-          attributes: {
-            amount: Math.round(total_price * 100), // PayMongo uses centavos
-            description: `Truck Order #${orderId} - ${truck_model}`,
-          },
-        },
-      }),
-    });
-
-    const paymongoData = await paymongoResponse.json();
-    const checkoutUrl = paymongoData?.data?.attributes?.checkout_url;
-    const paymongoRef = paymongoData?.data?.id;
-
-    if (!checkoutUrl) {
-      console.error("PayMongo Error:", paymongoData);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({
-          error: "Failed to create PayMongo payment link",
-          details: paymongoData,
-        }),
-      };
-    }
-
-    // ✅ Update order record with PayMongo reference
-    const updateQuery = `
-      UPDATE public.orders
-      SET paymongo_ref = $1
-      WHERE userId = $2;
-    `;
-    await pool.query(updateQuery, [paymongoRef, orderId]);
+    const orderId = result.rows[0].userid;
 
     // ✅ Return success response
     return {
@@ -141,14 +99,13 @@ export async function handler(event, context) {
         success: true,
         message: "Order created successfully",
         orderId,
-        checkoutUrl, // 👈 Frontend can redirect user to this URL
       }),
     };
   } catch (error) {
     console.error("Add order error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to insert order or create payment" }),
+      body: JSON.stringify({ error: "Failed to insert order" }),
     };
   }
 }

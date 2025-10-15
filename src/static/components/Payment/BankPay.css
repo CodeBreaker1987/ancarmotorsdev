@@ -1,0 +1,70 @@
+.bank-pay-container {
+    max-width: 400px;
+    margin: 120px auto;
+    padding: 32px 24px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.bank-pay-container h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a237e;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.bank-pay-container form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.bank-pay-container label {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bank-pay-container input,
+.bank-pay-container select {
+    padding: 8px 12px;
+    border: 1px solid #dbeafe;
+    border-radius: 6px;
+    font-size: 1rem;
+    margin-top: 2px;
+}
+
+.bank-pay-container button[type="submit"] {
+    padding: 10px 28px;
+    border: none;
+    border-radius: 8px;
+    background: #3949ab;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 12px;
+}
+
+.bank-pay-container button[type="submit"]:hover {
+    background: #283593;
+}
+
+@media (max-width: 500px) {
+    .bank-pay-container {
+        padding: 16px 8px;
+    }
+    .bank-pay-container h2 {
+        font-size: 1.4rem;
+    }
+}

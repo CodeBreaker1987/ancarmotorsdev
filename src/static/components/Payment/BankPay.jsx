@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import "./BankPay.css";
 
 // --- Bank Payment Page ---
-export function BankPay({ amount, onSuccess, onFail }) {
+export default function BankPay({ amount, onSuccess, onFail }) {
   const [bank, setBank] = useState("BDO");
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -22,7 +23,7 @@ export function BankPay({ amount, onSuccess, onFail }) {
 
   return (
     <div className="bank-pay-container">
-      <h2>Bank Payment</h2>
+      <h2>BANK PAYMENT FORM</h2>
       <form onSubmit={handleSubmit}>
         <label>
           Select Banking Option:
@@ -34,7 +35,21 @@ export function BankPay({ amount, onSuccess, onFail }) {
         </label>
         <label>
           Debit Card Number:
-          <input type="text" value={cardNumber} onChange={e => setCardNumber(e.target.value)} required />
+          <input
+            type="text"
+            value={cardNumber}
+            onChange={e => {
+              // Allow only numbers and spaces, max 24 digits
+              let val = e.target.value.replace(/[^\d ]/g, "");
+              val = val.replace(/(\d{24})\d*/, "$1"); // Limit to 24 digits
+              setCardNumber(val);
+            }}
+            required
+            maxLength={29} // 24 digits + up to 5 spaces
+            inputMode="numeric"
+            pattern="[0-9 ]*"
+            placeholder="Enter card number"
+          />
         </label>
         <label>
           CardHolder Name:
@@ -46,7 +61,21 @@ export function BankPay({ amount, onSuccess, onFail }) {
         </label>
         <label>
           CVV:
-          <input type="password" value={cvv} onChange={e => setCvv(e.target.value)} required maxLength={4} />
+          <input
+            type="text"
+            value={cvv}
+            onChange={e => {
+              // Allow only numbers, max 4 digits
+              let val = e.target.value.replace(/[^\d]/g, "");
+              val = val.slice(0, 4);
+              setCvv(val);
+            }}
+            required
+            maxLength={4}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            placeholder="CVV"
+          />
         </label>
         <button type="submit">Pay ₱{amount.toLocaleString()}</button>
       </form>

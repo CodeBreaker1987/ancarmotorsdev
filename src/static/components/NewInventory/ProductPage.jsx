@@ -12,6 +12,7 @@ const ProductPage = () => {
 
   // Use state for truck so it can be restored
   const [truck, setTruck] = useState(location.state?.truck || null);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
 
   // Save truck info to localStorage whenever visiting this page
   useEffect(() => {
@@ -38,6 +39,12 @@ const ProductPage = () => {
       }
     }
   }, [truck, location.state]);
+
+  useEffect(() => {
+    if (location.state?.fromCheckout) {
+      setShowOrderSuccess(true);
+    }
+  }, [location.state]);
 
   // Overlay open handlers
   const handleOpenOverlay = () => {
@@ -86,11 +93,15 @@ const ProductPage = () => {
         <TruckOrderForm
           truck={truck}
           basePrice={truck.basePrice}
-          user={user}
+          onOrderPlaced={() => {}}
           onOpenOverlay={handleOpenOverlay}
           onOpenRegister={handleOpenRegister}
+          showOrderSuccess={showOrderSuccess}
+          setShowOrderSuccess={setShowOrderSuccess}
         />
       </div>
+
+     
     </div>
   );
 };

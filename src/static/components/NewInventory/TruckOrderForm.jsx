@@ -19,9 +19,17 @@ const PAYMENT_METHODS = [
 
 const today = new Date().toISOString().split("T")[0];
 
-export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, onOpenOverlay, onOpenRegister }) {
+export default function TruckOrderForm({
+  truck,
+  basePrice = 0,
+  onOrderPlaced,
+  onOpenOverlay,
+  onOpenRegister,
+  showOrderSuccess,
+  setShowOrderSuccess
+}) {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const { user } = useUser(); // logged-in user from PostgreSQL
+  const { user } = useUser();
   const [color, setColor] = useState("");
   const [payload, setPayload] = useState("");
   const [lifting, setLifting] = useState("");
@@ -33,9 +41,11 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
   const [paymentMethod, setPaymentMethod] = useState("Bank Transfer");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [sending, setSending] = useState(false);
-  const [showOrderSuccess, setShowOrderSuccess] = useState(false); // NEW: Success popup
   const formRef = useRef();
   const navigate = useNavigate();
+
+  // Store payment method for OTP flow
+  const [pendingPaymentMethod, setPendingPaymentMethod] = useState("");
 
   // Reset form when truck changes
   useEffect(() => {
@@ -78,28 +88,28 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
   const totalPrice = unitPrice * quantity;
 
   const validateForm = () => {
-  if (!color) {
-    alert("Please select a body color.");
-    return false;
-  }
-  if (!payload) {
-    alert("Please select a payload capacity.");
-    return false;
-  }
-  if (!transmission) {
-    alert("Please select a transmission type.");
-    return false;
-  }
-  if (!paymentMethod) {
-    alert("Please select a payment method.");
-    return false;
-  }
-  if (shipping === "date" && !shippingDate) {
-    alert("Please select a shipping date.");
-    return false;
-  }
-  return true; // ✅ all good
-};
+    if (!color) {
+      alert("Please select a body color.");
+      return false;
+    }
+    if (!payload) {
+      alert("Please select a payload capacity.");
+      return false;
+    }
+    if (!transmission) {
+      alert("Please select a transmission type.");
+      return false;
+    }
+    if (!paymentMethod) {
+      alert("Please select a payment method.");
+      return false;
+    }
+    if (shipping === "date" && !shippingDate) {
+      alert("Please select a shipping date.");
+      return false;
+    }
+    return true; // ✅ all good
+  };
 
   const handleCheckout = (e) => {
     e.preventDefault();
@@ -111,6 +121,44 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
     setShowConfirmation(true);   // ✅ Only show confirmation if valid
   };
 
+  // OTP verification simulation (replace with your actual OTP logic)
+  const handleOTPVerified = async () => {
+    if (pendingPaymentMethod === "Installment") {
+      // Redirect to InstallmentPay page, pass truck and price
+      navigate("/InstallmentPay", {
+        state: {
+          truck,
+          amount: totalPrice,
+          fromCheckout: true,
+        },
+      });
+    } else if (
+      pendingPaymentMethod === "Cash Payment" ||
+      pendingPaymentMethod === "Check Payment"
+    ) {
+      // Redirect to last product page and trigger success popup
+      const lastProductPage = JSON.parse(localStorage.getItem("lastProductPage"));
+      if (lastProductPage?.pathname) {
+        navigate(lastProductPage.pathname, {
+          state: { truck, fromCheckout: true },
+        });
+      } else {
+        navigate("/", { state: { fromCheckout: true } });
+      }
+      if (setShowOrderSuccess) setShowOrderSuccess(true);
+      if (onOrderPlaced) onOrderPlaced({ truck, customer: user, totalPrice });
+    } else if (pendingPaymentMethod === "Bank Transfer") {
+      // Navigate to BankPay page for bank transfer payments
+      navigate("/BankPay", {
+        state: {
+          truck,
+          amount: totalPrice,
+          fromCheckout: true,
+        },
+      });
+    }
+  };
+
   // Store order details in sessionStorage for OTP/payment flow
   const handlePlaceOrder = async () => {
     if (!user) {
@@ -118,11 +166,13 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
       return;
     }
 
-    // For Bank Transfer or Loan/Installment, redirect to OTP Verification first
-    if (["Bank Transfer", "Loan or Installment"].includes(paymentMethod)) {
+    // For Installment, Cash, Check, or Bank Transfer, redirect to OTP Verification first
+    if (
+      ["Installment", "Cash Payment", "Check Payment", "Bank Transfer"].includes(paymentMethod)
+    ) {
       setShowConfirmation(false);
 
-      // Store order details in sessionStorage for retrieval after OTP
+      // Store order details and payment method for retrieval after OTP
       sessionStorage.setItem(
         "pendingOrder",
         JSON.stringify({
@@ -141,9 +191,12 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
           user,
         })
       );
+      setPendingPaymentMethod(paymentMethod);
 
-      // Go to OTP verification page
-      navigate("/OTPVerificationPage");
+      // Redirect to OTP Verification page and pass a callback or flag
+      navigate("/OTPVerificationPage", {
+        state: { fromCheckout: true, paymentMethod },
+      });
       return;
     }
 
@@ -194,28 +247,12 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
               },
               amount: totalPrice * 100, // PayMongo expects centavos
               description: `Truck Order - ${truck.description || truck.model}`,
-              redirect: {
-                success: `${SITE_URL}/paymongo-success`,
-                failed: `${SITE_URL}/paymongo-fail`
-              },
               type: "payment",
               currency: "PHP"
             }
           }
         };
 
-        // Call your Netlify function to create a checkout session
-        const paymongoResponse = await fetch("/.netlify/functions/create_checkout_session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        const paymongoResult = await paymongoResponse.json();
-        if (!paymongoResponse.ok) throw new Error(paymongoResult.error || "Failed to create PayMongo checkout session");
-
-        // Redirect user to PayMongo checkout
-        window.location.href = paymongoResult.checkoutUrl;
         return;
       }
 
@@ -242,7 +279,7 @@ export default function TruckOrderForm({ truck, basePrice = 0, onOrderPlaced, on
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, emailParams, USER_ID);
 
       setShowConfirmation(false);
-      setShowOrderSuccess(true);
+      if (setShowOrderSuccess) setShowOrderSuccess(true);
       if (onOrderPlaced) onOrderPlaced({ truck, customer: user, totalPrice });
 
     } catch (err) {

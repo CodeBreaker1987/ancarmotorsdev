@@ -14,7 +14,6 @@
     "@emailjs/nodejs": "^5.0.2",
     "@neondatabase/serverless": "^1.0.2",
     "emailjs-com": "^3.2.0",
-    "git": "^0.1.5",
     "neon": "^2.0.0",
     "node-fetch": "^3.3.2",
     "pg": "^8.16.3",

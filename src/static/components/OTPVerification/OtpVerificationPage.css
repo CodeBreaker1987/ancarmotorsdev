@@ -2,8 +2,11 @@
 
 .otp-verification-container {
   max-width: 400px;
-  margin: 100px auto;
-  background: #f3f4f6;
+  margin-top: 150px;
+  margin-bottom: 150px;
+  margin-left: auto;
+  margin-right: auto;
+  background: #e5e5e5;
   border-radius: 12px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.07);
   padding: 2rem 2.5rem;
@@ -12,16 +15,35 @@
 
 .otp-verification-container h2 {
   text-align: center;
-  font-size: 1.6rem;
+  font-size: 3rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
   color: #2563eb;
+  
+}
+
+.otp-verification-container h3 {
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  color: #374151;
 }
 
 .otp-verification-container p {
   margin-bottom: 1rem;
   color: #374151;
   font-size: 1rem;
+}
+
+.icon-circle-otp-icon {
+  font-size: 8rem;
+  color: #2563eb;
+  background: #e0e7ff;
+  border-radius: 50%;
+  padding: 2rem;
+  display: block;
+  margin: 0 auto 1rem auto;
 }
 
 .otp-verification-container input[type="text"] {

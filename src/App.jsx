@@ -20,6 +20,10 @@ import OwnerDashboard from "./static/components/SalesDashboard/OwnerDashboard";
 import SalesDashboard from "./static/components/SalesDashboard/SalesDashboard";
 import OTPVerificationPage from "./static/components/OTPVerification/OtpVerificationPage.jsx";
 import PaymentNav from "./static/components/Payment/PaymentNav";
+import InstallmentPay from "./static/components/Payment/InstallmentPay.jsx";
+import BankPay from "./static/components/Payment/BankPay.jsx";
+import PaySuccess from "./static/components/Payment/PaySuccess";
+import PayFailed from "./static/components/Payment/PayFailed";
 import { UserProvider, useUser } from "./static/Context/UserContext";
 
 function AppContent() {
@@ -89,8 +93,10 @@ function AppContent() {
           <Route path="/OwnerDashboard" element={<OwnerDashboard />} />  
           <Route path="/OTPVerificationPage" element={<OTPVerificationPage />} />
           <Route path="/PaymentNav" element={<PaymentNav />} />
-          <Route path="/PaymentSuccess" element={<PaymentNav />} />
-          <Route path="/PaymentFailed" element={<PaymentNav />} />
+          <Route path="/PaySuccess" element={<PaymentNav />} />
+          <Route path="/PayFailed" element={<PaymentNav />} />
+          <Route path="/InstallmentPay" element={<InstallmentPay />} />
+          <Route path="/BankPay" element={<BankPay />} />
         </Routes>
       </div>
 

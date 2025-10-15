@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./OtpVerificationPage.css";
 import emailjs from "@emailjs/browser";
+import { MdPermIdentity } from 'react-icons/md';
 
 const sendOtpEmail = async (userEmail, otpCode) => {
   try {
@@ -101,7 +102,9 @@ export default function OtpVerificationPage() {
 
   return (
     <div className="otp-verification-container">
+      <MdPermIdentity className="icon-circle-otp-icon" />
       <h2>OTP Verification</h2>
+      <h3>Select where to send OTP to verify this transaction.</h3>
       {!method ? (
         <div>
           <button onClick={() => sendOtp("sms")}>Send OTP via SMS</button>

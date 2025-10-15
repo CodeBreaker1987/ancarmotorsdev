@@ -283,6 +283,7 @@
   box-shadow: 0 4px 24px rgba(0,0,0,0.15);
   min-width: 320px;
   text-align: center;
+  margin-bottom: 90px;
 }
 
 .truck-order-confirmation-box h3{

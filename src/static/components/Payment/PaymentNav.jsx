@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import BankPay from "./BankPay";
+import InstallmentPay from "./InstallmentPay";
+import PaySuccess from "./PaySuccess";
+import PayFailed from "./PayFailed";
 
 // --- Main PaymentNav Router ---
 export default function PaymentNav() {
@@ -9,14 +13,18 @@ export default function PaymentNav() {
 
   // Success handler: redirect to product page and trigger order success popup
   const handleSuccess = () => {
-    navigate("/PaymentSuccess", {
-      state: { lastProductPath: `/product/${truck?.description?.replace(/\s+/g, "-").toLowerCase()}`, truck }
+    navigate("/PaySuccess", {
+      state: {
+        lastProductPath: `/product/${truck?.description?.replace(/\s+/g, "-").toLowerCase()}`,
+        truck,
+        fromCheckout: true // <-- Add this flag
+      }
     });
   };
 
   // Fail handler: redirect to failed page
   const handleFail = () => {
-    navigate("/PaymentFailed");
+    navigate("/PayFailed");
   };
 
   if (paymentMethod === "Bank Transfer") {
@@ -25,11 +33,11 @@ export default function PaymentNav() {
   if (paymentMethod === "Installment") {
     return <InstallmentPay amount={totalPrice} onSuccess={handleSuccess} onFail={handleFail} />;
   }
-  if (location.pathname === "/PaymentSuccess") {
-    return <PaymentSuccess onRedirect={() => navigate(location.state?.lastProductPath || "/")} onCancel={() => navigate("/")} />;
+  if (location.pathname === "/PaySuccess") {
+    return <PaySuccess onRedirect={() => navigate(location.state?.lastProductPath || "/")} onCancel={() => navigate("/")} />;
   }
-  if (location.pathname === "/PaymentFailed") {
-    return <PaymentFailed onRedirect={() => navigate("/InventoryNav")} onCancel={() => navigate("/")} />;
+  if (location.pathname === "/PayFailed") {
+    return <PayFailed onRedirect={() => navigate("/InventoryNav")} onCancel={() => navigate("/")} />;
   }
   return <div>Invalid payment method.</div>;
 }
