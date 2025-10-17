@@ -16,22 +16,19 @@ import {
   CartesianGrid,
   LineChart,
   Line,
-  AreaChart,
-  Area,
-  ComposedChart,
 } from "recharts";
 import "./SalesDashboard.css";
 import AncarLogo from "../../../assets/media/AncarLogo.7ad7473b37e000adbeb6.png";
 
-// Color palette for pie charts
+/* ---------- Constants ---------- */
 
 const COLORS = [
-  "#4F46E5", // completed
-  "#EF4444", // canceled
-  "#F59E0B", // returned
-  "#10B981", // processing
-  "#6366F1", // shipped
-  "#06B6D4", // out for delivery
+  "#4F46E5",
+  "#EF4444",
+  "#F59E0B",
+  "#10B981",
+  "#6366F1",
+  "#06B6D4",
 ];
 
 const STATUS_OPTIONS = [
@@ -45,10 +42,11 @@ const STATUS_OPTIONS = [
   "Returned",
 ];
 
+// Display options are capitalized; values we send/compare are normalized to lowercase
 const PAYMENT_STATUS_OPTIONS = [
-  "pending",
-  "paid",
-  "continuous"
+  { value: "pending", label: "Pending" },
+  { value: "paid", label: "Paid" },
+  { value: "continuous", label: "Continuous" },
 ];
 
 const FILTERS = [
@@ -59,7 +57,6 @@ const FILTERS = [
   { label: "Returned", statuses: ["Returned"] },
 ];
 
-// Truck model groups
 const ELF_MODELS = [
   "Boom Truck Elf", "Closed Van Elf", "Dropside Elf", "Freezer Van Elf",
   "Garbage Compactor Elf", "Manlifter Elf", "Mini Dump Elf", "Tow Truck Elf", "Wing Van Elf"
@@ -73,189 +70,66 @@ const GIGA_MODELS = [
   "Water Tanker", "Wing Van 10w"
 ];
 
-// Pie chart helper with total amount display for sold units and click-to-expand modal
-function PieChartBox({ data, showAmount, monthOrders, title }) {
-  const [modalOpen, setModalOpen] = useState(false);
-  if (data.length === 0) {
-    return <div style={{ textAlign: "center", color: "#888", paddingTop: "100px" }}>No data for this month.</div>;
-  }
-  // If showAmount, add total amount per model to tooltip
-  const pieData = data.map(d => {
-    if (!showAmount || !monthOrders) return d;
-    // Find all orders for this model
-    const total = monthOrders
-      .filter(o => o.truck_model === d.name && o.status === "Completed")
-      .reduce((sum, o) => sum + Number(o.total_price || 0), 0);
-    return { ...d, amount: total };
-  });
-  return (
-    <>
-      <div style={{ cursor: "pointer" }} onClick={() => setModalOpen(true)}>
-        <ResponsiveContainer width="100%" height={260}>
-          <PieChart>
-            <Pie
-              dataKey="value"
-              data={pieData}
-              outerRadius={80}
-              label={({ name, value, amount }) =>
-                showAmount && amount ? `${name}: ${value} (₱${amount.toLocaleString()})` : `${name}: ${value}`
-              }
-            >
-              {pieData.map((entry, index) => (
-                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value, name, props) => {
-              if (showAmount && props.payload.amount) {
-                return [`${value} units, ₱${props.payload.amount.toLocaleString()}`, name];
-              }
-              return [value, name];
-            }} />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-      {modalOpen && (
-        <div style={{
-          position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.4)", zIndex: 9999,
-          display: "flex", alignItems: "center", justifyContent: "center"
-        }} onClick={() => setModalOpen(false)}>
-          <div style={{ background: "#fff", borderRadius: 12, padding: 32, minWidth: 500, boxShadow: "0 8px 32px rgba(79,70,229,0.18)" }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ marginBottom: 24 }}>{title || "Pie Chart Details"}</h2>
-            <ResponsiveContainer width={500} height={400}>
-              <PieChart>
-                <Pie
-                  dataKey="value"
-                  data={pieData}
-                  outerRadius={150}
-                  label={({ name, value, amount }) =>
-                    showAmount && amount ? `${name}: ${value} (₱${amount.toLocaleString()})` : `${name}: ${value}`
-                  }
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value, name, props) => {
-                  if (showAmount && props.payload.amount) {
-                    return [`${value} units, ₱${props.payload.amount.toLocaleString()}`, name];
-                  }
-                  return [value, name];
-                }} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-            {/* Details Table */}
-            <table style={{ marginTop: 24, width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#f3f4f6" }}>
-                  <th style={{ textAlign: "left", padding: "8px 12px" }}>Model</th>
-                  <th style={{ textAlign: "right", padding: "8px 12px" }}>Units</th>
-                  <th style={{ textAlign: "right", padding: "8px 12px" }}>Total Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pieData.map((d, idx) => (
-                  <tr key={d.name}>
-                    <td style={{ padding: "8px 12px" }}>{d.name}</td>
-                    <td style={{ textAlign: "right", padding: "8px 12px" }}>{d.value}</td>
-                    <td style={{ textAlign: "right", padding: "8px 12px" }}>{d.amount ? `₱${d.amount.toLocaleString()}` : "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <button style={{ marginTop: 32, padding: "10px 24px", borderRadius: 8, background: "#4F46E5", color: "#fff", border: "none", fontWeight: 600, cursor: "pointer" }} onClick={() => setModalOpen(false)}>Close</button>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
+/* ---------- Helper utilities ---------- */
 
-// PieChartBox static display (no hover effect)
-function PieChartBoxStatic({ title, data, showAmount, monthOrders }) {
-  return (
-    <div className="chart-box">
-      <h3>{title}</h3>
-      <PieChartBox data={data} showAmount={showAmount} monthOrders={monthOrders} />
-    </div>
-  );
-}
-
-const handlePaymentStatusChange = async (orderId, newStatus) => {
+const normalizeStatus = (s) => String(s || "").trim().toLowerCase();
+const normalizeTimestampToISO = (ts) => {
+  if (!ts) return null;
+  // handle PostgreSQL 'YYYY-MM-DD HH:mm:SS.ssssss' by replacing space with 'T'
   try {
-    const response = await fetch('/.netlify/functions/update_payment_status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId, status: newStatus })
-    });
-
-    if (!response.ok) throw new Error('Failed to update payment status');
-
-    // Update the orders state to reflect the change
-    setOrders(prevOrders => 
-      prevOrders.map(order => 
-        order.orderid === orderId 
-          ? { ...order, payment_status: newStatus }
-          : order
-      )
-    );
-
-  } catch (error) {
-    console.error('Error updating payment status:', error);
-    alert('Failed to update payment status');
+    const str = String(ts);
+    // if already contains 'T' or 'Z' assume ISO
+    if (str.includes("T") || str.endsWith("Z")) return new Date(str).toISOString();
+    // else replace first space with 'T' and append Z (UTC) fallback
+    const maybeIso = str.replace(" ", "T");
+    const d = new Date(maybeIso);
+    if (!isNaN(d.getTime())) return d.toISOString();
+    // last resort: let Date try the original string
+    const fallback = new Date(str);
+    return isNaN(fallback.getTime()) ? null : fallback.toISOString();
+  } catch (e) {
+    return null;
   }
 };
+
+const parsePrice = (v) => {
+  if (v === null || v === undefined) return 0;
+  const s = String(v).replace(/[₱,\s]/g, "");
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+};
+
+/* ---------- Component ---------- */
 
 export default function SalesDashboard() {
   const { user, setUser } = useUser();
   const navigate = useNavigate();
-  const [orders, setOrders] = useState([]);
+
+  const [orders, setOrders] = useState([]); // table data (may be filtered/paginated)
+  const [allOrders, setAllOrders] = useState([]); // full dataset for charts
   const [filterIdx, setFilterIdx] = useState(0);
   const [month, setMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   });
   const [loading, setLoading] = useState(true);
-  const [chartStatus, setChartStatus] = useState("Completed"); // "Completed" = Sold, "Canceled", "Returned"
-  // Column toggle state
-  const allColumns = [
-    { key: "username", label: "Username" },
-    { key: "first_name", label: "First Name" },
-    { key: "last_name", label: "Last Name" },
-    { key: "home_address", label: "Home Address" },
-    { key: "email_address", label: "Email" },
-    { key: "phone_number", label: "Phone" },
-    { key: "truck_model", label: "Truck Model" },
-    { key: "body_color", label: "Body Color" },
-    { key: "payload_capacity", label: "Payload" },
-    { key: "towing_capacity", label: "Towing" },
-    { key: "lifting_capacity", label: "Lifting" },
-    { key: "transmission", label: "Transmission" },
-    { key: "quantity", label: "Quantity" },
-    { key: "base_price", label: "Base Price" },
-    { key: "total_price", label: "Total Price" },
-    { key: "shipping_option", label: "Shipping Option" },
-    { key: "payment_method", label: "Payment Method" },
-  ];
-  const [visibleColumns, setVisibleColumns] = useState(() => allColumns.map(col => col.key));
+  const [chartStatus, setChartStatus] = useState("Completed");
+  const [visibleColumns, setVisibleColumns] = useState(() => [
+    "username","first_name","last_name","home_address","email_address","phone_number",
+    "truck_model","body_color","payload_capacity","towing_capacity","lifting_capacity",
+    "transmission","quantity","base_price","total_price","shipping_option","payment_method"
+  ]);
   const [showColDropdown, setShowColDropdown] = useState(false);
-  const toggleColumn = (key) => {
-    setVisibleColumns((prev) =>
-      prev.includes(key)
-        ? prev.filter((k) => k !== key)
-        : [...prev, key]
-    );
-  };
-  // Search and sort state
+
+  // search/sort/pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [searchField, setSearchField] = useState("orderid");
   const [sortField, setSortField] = useState("");
   const [sortAsc, setSortAsc] = useState(true);
-  // Pagination state for orders table
   const [ordersPage, setOrdersPage] = useState(0);
   const ORDERS_PER_PAGE = 10;
-  // Management level logic
+
+  // Management level helper
   const positionLevels = {
     "ceo": "top",
     "chief operating officer": "top",
@@ -265,19 +139,17 @@ export default function SalesDashboard() {
     "it technician": "bottom",
     "sales agent": "bottom",
     "owner": "owner",
-    // Add more positions as needed
   };
   function getManagementLevel(position) {
     if (!position || typeof position !== "string") return "bottom";
     const normalized = position.trim().toLowerCase();
-    const pos = positionLevels[normalized];
-    return pos || "bottom";
+    return positionLevels[normalized] || "bottom";
   }
   const userLevel = getManagementLevel(user?.company_position || user?.position);
 
-  // --- Current date/time and page runtime ---
+  // runtime
   const [currentTime, setCurrentTime] = useState(() => new Date());
-  const [runtime, setRuntime] = useState(0); // seconds
+  const [runtime, setRuntime] = useState(0);
   useEffect(() => {
     const start = Date.now();
     const interval = setInterval(() => {
@@ -288,7 +160,7 @@ export default function SalesDashboard() {
   }, []);
 
   function formatDateTime(dt) {
-    return dt.toLocaleString();
+    return dt ? new Date(dt).toLocaleString() : "-";
   }
   function formatRuntime(sec) {
     const h = Math.floor(sec / 3600);
@@ -297,76 +169,190 @@ export default function SalesDashboard() {
     return `${h > 0 ? h + 'h ' : ''}${m > 0 ? m + 'm ' : ''}${s}s`;
   }
 
+  /* ---------- Data fetcher ---------- */
+  const fetchOrders = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const currentFilter = FILTERS[filterIdx];
+      // send normalized filter statuses to server
+      const statusFilter = currentFilter.statuses.map(s => String(s).trim());
+      // POST get_all_orders with month and statuses (server uses month if provided)
+      const [ordersRes, allOrdersRes] = await Promise.all([
+        fetch("/.netlify/functions/get_all_orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            month, // send month so server can paginate/limit if needed
+            statusFilter,
+            page: ordersPage + 1,
+            limit: ORDERS_PER_PAGE,
+          }),
+        }),
+        // keep get_sales_data as GET (returns all orders for charts)
+        fetch("/.netlify/functions/get_sales_data"),
+      ]);
+
+      // defensive parsing + logging
+      const ordersText = await ordersRes.text();
+      console.debug("get_all_orders raw:", ordersText);
+      const allOrdersText = await allOrdersRes.text();
+      console.debug("get_sales_data raw:", allOrdersText);
+
+      let ordersJson = {};
+      let allOrdersJson = {};
+      try {
+        ordersJson = ordersText ? JSON.parse(ordersText) : {};
+      } catch (e) {
+        console.error("Failed to parse get_all_orders JSON:", e);
+        throw new Error("Invalid JSON from get_all_orders");
+      }
+      try {
+        allOrdersJson = allOrdersText ? JSON.parse(allOrdersText) : {};
+      } catch (e) {
+        console.error("Failed to parse get_sales_data JSON:", e);
+        throw new Error("Invalid JSON from get_sales_data");
+      }
+
+      if (!ordersRes.ok) {
+        console.error("get_all_orders returned error:", ordersJson);
+        throw new Error(ordersJson.error || "Failed to fetch orders");
+      }
+      if (!allOrdersRes.ok) {
+        console.error("get_sales_data returned error:", allOrdersJson);
+        throw new Error(allOrdersJson.error || "Failed to fetch sales data");
+      }
+
+      // normalize keys and timestamps
+      const normalizeRow = (r) => {
+        const normalized = {
+          ...r,
+          orderid: r.orderid ?? r.orderId ?? r.id,
+          userid: r.userid ?? r.user_id ?? r.userId,
+          username: r.username ?? r.user_name,
+          truck_model: r.truck_model ?? r.truckModel,
+          quantity: r.quantity ?? r.qty,
+          total_price: parsePrice(r.total_price ?? r.totalPrice),
+          base_price: parsePrice(r.base_price ?? r.basePrice),
+          payment_status: (r.payment_status ?? r.paymentStatus ?? "pending"),
+          status: r.status ?? r.order_status ?? "",
+          // convert timestamp to ISO (frontend uses new Date(o.order_timestamp) safely)
+          order_timestamp: normalizeTimestampToISO(r.order_timestamp ?? r.created_at ?? r.order_date) || r.order_timestamp || null,
+          // keep any other fields
+          first_name: r.first_name ?? r.firstName ?? "",
+          last_name: r.last_name ?? r.lastName ?? "",
+          home_address: r.home_address ?? r.address ?? "",
+          email_address: r.email_address ?? r.email ?? "",
+          phone_number: r.phone_number ?? r.phone ?? ""
+        };
+        return normalized;
+      };
+
+      const ordersArr = Array.isArray(ordersJson.orders) ? ordersJson.orders.map(normalizeRow) : [];
+      const allOrdersArr = Array.isArray(allOrdersJson.orders) ? allOrdersJson.orders.map(normalizeRow) : [];
+
+      console.debug(`Parsed orders: ${ordersArr.length}, allOrders: ${allOrdersArr.length}`);
+
+      setOrders(ordersArr);
+      setAllOrders(allOrdersArr);
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      setOrders([]);
+      setAllOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ---------- Effects ---------- */
   useEffect(() => {
     if (!user) {
       navigate("/", { replace: true });
-      return;
     }
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch("/.netlify/functions/get_all_orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        });
-        if (!res.ok) throw new Error("Failed to fetch orders");
-        const data = await res.json();
-        setOrders(data.orders || []);
-      } catch (err) {
-        alert("Error fetching orders: " + err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrders();
-  }, [user, month]);
+  }, [user, navigate]);
 
-  // Reset to first page when filter/search/sort/month changes
+  // include month and page in dependencies so charts/table update when month changes
+  useEffect(() => {
+    if (user) {
+      fetchOrders();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.userid, filterIdx, month, ordersPage]);
+
   useEffect(() => {
     setOrdersPage(0);
   }, [filterIdx, searchTerm, searchField, sortField, sortAsc, month]);
 
+  /* ---------- Action handlers ---------- */
 
   const { logout } = useUser();
-  const handleLogout = () => {
-    logout(); // triggers confirmation modal
-  };
+  const handleLogout = () => logout();
 
-  // --- Change order status ---
   const handleStatusChange = async (orderId, newStatus) => {
     try {
+      // keep status value exactly as shown (server may expect capitalized) — normalize if server needs lowercase
       const res = await fetch("/.netlify/functions/update_order_status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId, status: newStatus }),
       });
-      if (!res.ok) throw new Error("Failed to update order status");
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.orderid === orderId ? { ...o, status: newStatus } : o
-        )
-      );
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(txt || "Failed to update order status");
+      }
+
+      // update both sets so table + charts reflect change
+      setOrders(prev => prev.map(o => o.orderid === orderId ? { ...o, status: newStatus } : o));
+      setAllOrders(prev => prev.map(o => o.orderid === orderId ? { ...o, status: newStatus } : o));
     } catch (err) {
-      alert("Error updating status: " + err.message);
+      console.error("Error updating status:", err);
+      alert("Error updating status: " + (err.message || err));
     }
   };
 
-  // --- Filter, search, and sort orders ---
+  const handlePaymentStatusChange = async (orderId, newStatusRaw) => {
+    try {
+      const newStatus = normalizeStatus(newStatusRaw); // backend expects lowercase in your function
+      const response = await fetch('/.netlify/functions/update_payment_status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status: newStatus })
+      });
+      const txt = await response.text();
+      let json = {};
+      try { json = txt ? JSON.parse(txt) : {}; } catch(e) { console.error("Invalid JSON from update_payment_status:", txt); }
+
+      if (!response.ok) {
+        console.error("Payment update failed:", json);
+        throw new Error(json.error || 'Failed to update payment status');
+      }
+
+      // Sync table and charts
+      setOrders(prev => prev.map(o => o.orderid === orderId ? { ...o, payment_status: newStatus } : o));
+      setAllOrders(prev => prev.map(o => o.orderid === orderId ? { ...o, payment_status: newStatus } : o));
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      alert('Failed to update payment status');
+    }
+  };
+
+  /* ---------- Filtering, Searching, Pagination ---------- */
+
   const filteredOrders = useMemo(() => {
-    const filterStatuses = FILTERS[filterIdx].statuses;
-    let filtered = orders.filter((o) => filterStatuses.includes(o.status));
-    // Search
+    // use lowercase trimmed statuses for comparison
+    const filterStatuses = FILTERS[filterIdx].statuses.map(s => normalizeStatus(s));
+    let filtered = orders.filter((o) => filterStatuses.includes(normalizeStatus(o.status)));
+
     if (searchTerm.trim()) {
       const term = searchTerm.trim().toLowerCase();
       filtered = filtered.filter(o => {
-        if (searchField === "orderid") return String(o.orderid).toLowerCase().includes(term);
-        if (searchField === "userid") return String(o.userid).toLowerCase().includes(term);
-        if (searchField === "username") return String(o.username).toLowerCase().includes(term);
+        if (searchField === "orderid") return String(o.orderid || "").toLowerCase().includes(term);
+        if (searchField === "userid") return String(o.userid || "").toLowerCase().includes(term);
+        if (searchField === "username") return String(o.username || "").toLowerCase().includes(term);
         return true;
       });
     }
-    // Sort
+
     if (sortField) {
       filtered = [...filtered].sort((a, b) => {
         const aVal = String(a[sortField] || "").toLowerCase();
@@ -379,44 +365,37 @@ export default function SalesDashboard() {
     return filtered;
   }, [orders, filterIdx, searchTerm, searchField, sortField, sortAsc]);
 
-  // Pagination: slice filteredOrders for current page
   const paginatedOrders = useMemo(() => {
     const start = ordersPage * ORDERS_PER_PAGE;
     return filteredOrders.slice(start, start + ORDERS_PER_PAGE);
   }, [filteredOrders, ordersPage]);
 
-  const totalPages = Math.ceil(filteredOrders.length / ORDERS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PER_PAGE));
 
-  // --- Sales Data for Truck Model Pie Charts ---
-  const monthOrders = useMemo(() =>
-    orders.filter(o => o.order_timestamp.startsWith(month)), [orders, month]);
+  /* ---------- Chart helpers ---------- */
 
-  function getModelPieData(models, status) {
-    const filtered = monthOrders.filter(o =>
-      models.includes(o.truck_model) && o.status === status
-    );
-    const counts = {};
-    models.forEach(model => { counts[model] = 0; });
-    filtered.forEach(o => { counts[o.truck_model] += o.quantity || 1; });
-    return Object.entries(counts)
-      .filter(([_, count]) => count > 0)
-      .map(([model, count]) => ({ name: model, value: count }));
-  }
-
+  // Total revenue for selected month (case-insensitive status check)
   const soldRevenue = useMemo(() => {
-  if (chartStatus !== "Completed") return 0;
-  return monthOrders
-    .filter(o => o.status === "Completed")
-    .reduce((sum, o) => sum + Number(o.total_price || 0), 0);
-}, [monthOrders, chartStatus]);
+    const statusNeeded = "completed";
+    const monthStart = new Date(month + "-01");
+    const monthEnd = new Date(monthStart);
+    monthEnd.setMonth(monthEnd.getMonth() + 1);
 
+    return allOrders
+      .filter(o => normalizeStatus(o.status) === statusNeeded && (() => {
+        const t = o.order_timestamp ? new Date(o.order_timestamp) : null;
+        return t && t >= monthStart && t < monthEnd;
+      })())
+      .reduce((sum, o) => sum + (parsePrice(o.total_price)), 0);
+  }, [allOrders, month]);
+
+  /* ---------- Render ---------- */
 
   if (!user) return <p>Please log in to view the sales dashboard.</p>;
 
-  
   return (
     <div className="sales-dashboard">
-       {/* Return Button for Owner */}
+      {/* Owner return button */}
       {user?.company_position?.toLowerCase() === "owner" && (
         <div style={{ margin: "24px 0 0 0", display: "flex", justifyContent: "flex-start" }}>
           <button
@@ -437,83 +416,64 @@ export default function SalesDashboard() {
           </button>
         </div>
       )}
+
       <header className="dashboard-header">
         <img src={AncarLogo} alt="Ancar Motors Logo" className="logo" />
         <h1>Company Sales Dashboard</h1>
-        <button className="logout-btn" onClick={handleLogout}>
-          Sign Out
-        </button>
+        <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
       </header>
 
-     
+      <div className="user-info">
+        <p>Welcome, <strong>{user.first_name} {user.last_name}</strong> ({user.company_position || user.position})</p>
+        <p>Management Level: <strong>{userLevel.charAt(0).toUpperCase() + userLevel.slice(1)}</strong></p>
+        <p>Current Date/Time: <strong>{formatDateTime(currentTime)}</strong></p>
+        <p>Page Runtime: <strong>{formatRuntime(runtime)}</strong></p>
+      </div>
 
-    <div className="user-info">
-      <p>Welcome, <strong>{user.first_name} {user.last_name}</strong> ({user.company_position || user.position})</p>
-      <p>Management Level: <strong>{userLevel.charAt(0).toUpperCase() + userLevel.slice(1)}</strong></p>
-      <p>Current Date/Time: <strong>{formatDateTime(currentTime)}</strong></p>
-      <p>Page Runtime: <strong>{formatRuntime(runtime)}</strong></p>
-    </div>
-
-      {/* Orders Table Section - Only for Top & Bottom Level */}
-      {(userLevel === "top" || userLevel === "bottom" || userLevel ==="owner") && (
+      {/* Orders Table Section */}
+      {(userLevel === "top" || userLevel === "bottom" || userLevel === "owner") && (
         <section className="orders-section">
-          <div className="orders-header">
-            <h2 style={{fontWeight: "bold", fontSize: "30px", color: "darkblue" }}>Customer Orders</h2>
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginLeft: "1rem" }}>
-              <select
-                value={filterIdx}
-                onChange={(e) => setFilterIdx(Number(e.target.value))}
-                style={{ marginLeft: "0.5rem", border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}
-              >
-                {FILTERS.map((f, idx) => (
-                  <option key={f.label} value={idx}>
-                    {f.label}
-                  </option>
-                ))}
+          <div className="orders-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 style={{ fontWeight: "bold", fontSize: "30px", color: "darkblue" }}>Customer Orders</h2>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <select value={filterIdx} onChange={(e) => setFilterIdx(Number(e.target.value))}
+                style={{ border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}>
+                {FILTERS.map((f, idx) => <option key={f.label} value={idx}>{f.label}</option>)}
               </select>
-              <input
-                type="month"
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-              />
-              {/* Search bar and sort dropdowns */}
-              <select value={searchField} onChange={e => setSearchField(e.target.value)} style={{ marginLeft: "2rem", border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}>
+
+              <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
+
+              <select value={searchField} onChange={e => setSearchField(e.target.value)}
+                style={{ border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}>
                 <option value="orderid">OrderID</option>
                 <option value="userid">UserID</option>
                 <option value="username">Username</option>
               </select>
 
-              <input
-                type="text"
-                placeholder={`Search by ${searchField.charAt(0).toUpperCase() + searchField.slice(1)}`}
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                style={{ marginLeft: "0", padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db" }}
-              />
-              
-              <select value={sortField} onChange={e => setSortField(e.target.value)} style={{ marginLeft: "0.5rem", border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}>
+              <input type="text" placeholder={`Search by ${searchField}`} value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db" }} />
+
+              <select value={sortField} onChange={e => setSortField(e.target.value)}
+                style={{ border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}>
                 <option value="">Sort By</option>
                 <option value="userid">UserID</option>
                 <option value="username">Username</option>
               </select>
-              <button type="button" onClick={() => setSortAsc(a => !a)} style={{ marginLeft: "0.5rem", padding: "4px 8px", borderRadius: "6px", background: "#5282e2ff", border: "none", cursor: "pointer", color: "white", fontWeight: "bold" }}>
+
+              <button type="button" onClick={() => setSortAsc(a => !a)}
+                style={{ padding: "4px 8px", borderRadius: "6px", background: "#5282e2ff", border: "none", cursor: "pointer", color: "white", fontWeight: "bold" }}>
                 {sortAsc ? "Asc" : "Desc"}
               </button>
-              {/* Column toggle dropdown */}
-              <div className="column-toggle-dropdown" style={{ position: "relative" }}>
+
+              <div style={{ position: "relative" }}>
                 <button type="button" style={{ padding: "6px 10px", borderRadius: "6px", background: "#e5e7eb", border: "none", cursor: "pointer" }}
-                  onClick={() => setShowColDropdown((v) => !v)}>
-                  Toggle Columns ▼
-                </button>
+                  onClick={() => setShowColDropdown(v => !v)}>Toggle Columns ▼</button>
                 {showColDropdown && (
-                  <div style={{ position: "absolute", top: "110%", left: 0, background: "white", border: "1px solid #e5e7eb", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", zIndex: 10, padding: "10px", minWidth: "120px" }}>
-                    {allColumns.map(col => (
-                      <label key={col.key} style={{ display: "block", marginBottom: "6px" }}>
-                        <input
-                          type="checkbox"
-                          checked={visibleColumns.includes(col.key)}
-                          onChange={() => toggleColumn(col.key)}
-                        /> {col.label}
+                  <div style={{ position: "absolute", top: "110%", left: 0, background: "white", border: "1px solid #e5e7eb", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", zIndex: 10, padding: "10px", minWidth: "160px" }}>
+                    {visibleColumns && ["username","first_name","last_name","home_address","email_address","phone_number","truck_model","body_color","payload_capacity","towing_capacity","lifting_capacity","transmission","quantity","base_price","total_price","shipping_option","payment_method"].map(col => (
+                      <label key={col} style={{ display: "block", marginBottom: "6px" }}>
+                        <input type="checkbox" checked={visibleColumns.includes(col)} onChange={() => setVisibleColumns(prev => prev.includes(col) ? prev.filter(k => k !== col) : [...prev, col])} /> {col}
                       </label>
                     ))}
                   </div>
@@ -521,6 +481,7 @@ export default function SalesDashboard() {
               </div>
             </div>
           </div>
+
           <div className="orders-table-container">
             <table className="orders-table">
               <thead>
@@ -528,8 +489,8 @@ export default function SalesDashboard() {
                   <th>Order ID</th>
                   <th>Order Date</th>
                   <th>UserID</th>
-                  {allColumns.map(col => visibleColumns.includes(col.key) && <th key={col.key}>{col.label}</th>)}
-                  <th>Status</th>
+                  {visibleColumns.map(col => <th key={col}>{col.replace(/_/g, " ")}</th>)}
+                  <th>Order Status</th>
                   <th>Change Status</th>
                   <th>Payment Status</th>
                   <th>Actions</th>
@@ -537,239 +498,183 @@ export default function SalesDashboard() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td colSpan={22}>Loading...</td>
-                  </tr>
+                  <tr><td colSpan={22}>Loading...</td></tr>
                 ) : paginatedOrders.length > 0 ? (
                   paginatedOrders.map((o) => (
                     <tr key={o.orderid}>
                       <td>{o.orderid}</td>
-                      <td>{new Date(o.order_timestamp).toLocaleString()}</td>
+                      <td>{o.order_timestamp ? new Date(o.order_timestamp).toLocaleString() : "-"}</td>
                       <td>{o.userid}</td>
-                      {allColumns.map(col => visibleColumns.includes(col.key) && <td key={col.key}>{col.key === "base_price" || col.key === "total_price" ? `₱ ${Number(o[col.key] || 0).toLocaleString()}` : o[col.key]}</td>)}
+                      {visibleColumns.map(col => (
+                        <td key={col}>
+                          {(col === "base_price" || col === "total_price") ? `₱ ${parsePrice(o[col]).toLocaleString()}` : (o[col] ?? "-")}
+                        </td>
+                      ))}
                       <td><span className="status">{o.status}</span></td>
                       <td>
-                        <select
-                          value={o.status}
-                          onChange={(e) => handleStatusChange(o.orderid, e.target.value)}
-                          disabled={o.status === "Completed" || o.status === "Canceled" || o.status === "Returned"}
-                        >
-                          {STATUS_OPTIONS.map((status) => (
-                            <option key={status} value={status}>{status}</option>
+                        <select value={o.status} onChange={(e) => handleStatusChange(o.orderid, e.target.value)}
+                          disabled={["completed", "canceled", "returned"].includes(normalizeStatus(o.status))}>
+                          {STATUS_OPTIONS.map(status => <option key={status} value={status}>{status}</option>)}
+                        </select>
+                      </td>
+                      <td>{(o.payment_status ? (o.payment_status.charAt(0).toUpperCase() + o.payment_status.slice(1)) : "Pending")}</td>
+                      <td>
+                        <select value={normalizeStatus(o.payment_status || "pending")} onChange={(e) => handlePaymentStatusChange(o.orderid, e.target.value)} className="status-dropdown">
+                          {PAYMENT_STATUS_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                           ))}
                         </select>
                       </td>
-                      <td>{order.payment_status || 'pending'}</td>
-                      <td>
-                     <select
-                       value={order.payment_status || 'pending'}
-                       onChange={(e) => handlePaymentStatusChange(order.orderid, e.target.value)}
-                       className="status-dropdown"
-                      >
-                       {PAYMENT_STATUS_OPTIONS.map(status => (
-                      <option key={status} value={status}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                     </option>
-                     ))}
-                    </select>
-                    </td>
                     </tr>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan={22}>No orders found for this filter/month.</td>
-                  </tr>
+                  <tr><td colSpan={22}>No orders found for this filter/month.</td></tr>
                 )}
               </tbody>
             </table>
-            {/* Pagination Controls */}
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 16, gap: 16, flexWrap: "wrap" }}>
-              <button
-                onClick={() => setOrdersPage(p => Math.max(0, p - 1))}
-                disabled={ordersPage === 0}
-                style={{ padding: "6px 16px", borderRadius: 6, border: "1px solid #d1d5db", background: ordersPage === 0 ? "#f3f4f6" : "#2563eb", color: ordersPage === 0 ? "#888" : "#fff", fontWeight: 600, cursor: ordersPage === 0 ? "not-allowed" : "pointer" }}
-              >
-                ◀ Previous
-              </button>
-              {/* Page Numbers */}
-              <div style={{ display: "flex", gap: 4 }}>
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setOrdersPage(i)}
-                    style={{
-                      minWidth: 32,
-                      padding: "6px 10px",
-                      borderRadius: 6,
-                      border: ordersPage === i ? "2px solid #2563eb" : "1px solid #d1d5db",
-                      background: ordersPage === i ? "#2563eb" : "#fff",
-                      color: ordersPage === i ? "#fff" : "#222",
-                      fontWeight: ordersPage === i ? 700 : 500,
-                      cursor: ordersPage === i ? "default" : "pointer"
-                    }}
-                    disabled={ordersPage === i}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => setOrdersPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={ordersPage >= totalPages - 1 || totalPages === 0}
-                style={{ padding: "6px 16px", borderRadius: 6, border: "1px solid #d1d5db", background: (ordersPage >= totalPages - 1 || totalPages === 0) ? "#f3f4f6" : "#2563eb", color: (ordersPage >= totalPages - 1 || totalPages === 0) ? "#888" : "#fff", fontWeight: 600, cursor: (ordersPage >= totalPages - 1 || totalPages === 0) ? "not-allowed" : "pointer" }}
-              >
-                Next ▶
-              </button>
+          </div>
+
+          <div className="table-footer-fixed">
+            <button onClick={() => setOrdersPage(p => Math.max(0, p - 1))} disabled={ordersPage === 0} className="pagination-button">◀ Previous</button>
+            <div className="page-numbers">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button key={i} onClick={() => setOrdersPage(i)} className={ordersPage === i ? 'page-number active' : 'page-number'} disabled={ordersPage === i}>{i + 1}</button>
+              ))}
             </div>
+            <button onClick={() => setOrdersPage(p => Math.min(totalPages - 1, p + 1))} disabled={ordersPage >= totalPages - 1 || totalPages === 0} className="pagination-button">Next ▶</button>
           </div>
         </section>
       )}
 
-      {/* Sales Charts Section - Only for Top & Middle Level */}
-      {(userLevel === "top" || userLevel === "middle" || userLevel ==="owner") && (
+      {/* Sales Charts Section */}
+      {(userLevel === "top" || userLevel === "middle" || userLevel === "owner") && (
         <section className="sales-section">
-          <div className="sales-header">
-            <h2>Sales Data — {month}</h2>
-            {chartStatus === "Completed" && (
-              <div style={{ fontWeight: "bold", marginTop: "10px" }}>
-                Total Revenue: ₱ {soldRevenue.toLocaleString()}
-              </div>
-            )}
+          <div className="sales-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2>Sales Data</h2>
+            <div style={{ textAlign: 'right', fontWeight: 700 }}>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>Total Revenue (month):</div>
+              <div style={{ fontSize: 18 }}>₱ {Math.round(soldRevenue).toLocaleString()}</div>
+            </div>
           </div>
-          <div className="sales-chart-filters">
-            <label>
-              Show:
-              <select
-                value={chartStatus}
-                onChange={e => setChartStatus(e.target.value)}
-                style={{ marginLeft: "0.5rem", marginRight: "2rem" }}
-              >
-                <option value="Completed">Sold</option>
-                <option value="Canceled">Canceled</option>
-                <option value="Returned">Returned</option>
-              </select>
-            </label>
-            <label>
-              Month:
-              <input
-                type="month"
-                value={month}
-                onChange={e => setMonth(e.target.value)}
-                style={{ marginLeft: "0.5rem" }}
-              />
-            </label>
+
+          <div style={{ margin: '1rem 0' }}>
+            <label>Month: </label>
+            <input type="month" value={month} onChange={e => setMonth(e.target.value)} />
           </div>
+
           <div className="charts-grid">
-            <div className="chart-box">
-              <h3>{`Isuzu Elf — ${chartStatus === "Completed" ? "Sold" : chartStatus === "Canceled" ? "Canceled" : "Returned"}`}</h3>
-              <PieChartBox data={getModelPieData(ELF_MODELS, chartStatus)} showAmount={chartStatus === "Completed"} monthOrders={monthOrders} title={`Isuzu Elf — ${chartStatus === "Completed" ? "Sold" : chartStatus === "Canceled" ? "Canceled" : "Returned"}`} />
+            {['Elf','Forward','Giga'].map(series => {
+              const modelList = series === 'Elf' ? ELF_MODELS : series === 'Forward' ? FORWARD_MODELS : GIGA_MODELS;
+              const monthStart = new Date(month + "-01");
+              const monthEnd = new Date(monthStart); monthEnd.setMonth(monthEnd.getMonth() + 1);
+
+              const filtered = allOrders.filter(o =>
+                normalizeStatus(o.status) === "completed" &&
+                o.order_timestamp &&
+                (() => {
+                  const d = new Date(o.order_timestamp);
+                  return d >= monthStart && d < monthEnd;
+                })() &&
+                modelList.includes(o.truck_model)
+              );
+
+              const pieData = modelList.map(model => {
+                const units = filtered.filter(o => o.truck_model === model).reduce((sum, o) => sum + (Number(o.quantity) || 1), 0);
+                return { name: model, value: units };
+              }).filter(d => d.value > 0);
+
+              return (
+                <div className="chart-box" key={series}>
+                  <h3>{`Isuzu ${series} — Sold Trucks (${month})`}</h3>
+                  {pieData.length === 0 ? (
+                    <div style={{ color: '#888', padding: '2rem', textAlign: 'center' }}>No data for this month.</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={260}>
+                      <PieChart>
+                        <Pie dataKey="value" data={pieData} outerRadius={80} label={({ name, value }) => `${name}: ${value}`}>
+                          {pieData.map((entry, idx) => <Cell key={idx} fill={COLORS[idx % COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              );
+            })}
+<div className="row-charts">
+            <div className="chart-box full-row">
+              <h3>Most Popular Sold Truck Models (Top 8)</h3>
+              {allOrders.length === 0 ? (
+                <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>No orders data available.</div>
+              ) : (() => {
+                const modelStats = {};
+                allOrders.filter(o => normalizeStatus(o.status) === "completed").forEach(o => {
+                  modelStats[o.truck_model] = (modelStats[o.truck_model] || 0) + (Number(o.quantity) || 1);
+                });
+                const topModels = Object.entries(modelStats).map(([name, value]) => ({ name, value }))
+                  .sort((a,b) => b.value - a.value).slice(0,8);
+                return topModels.length === 0 ? (
+                  <div style={{ color: '#F59E0B', padding: '2rem', textAlign: 'center' }}>No completed sales for any truck model.</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={topModels} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" fontSize={12} interval={0} angle={-20} textAnchor="end" height={70}/>
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="value" name="Units Sold" fill="#4F46E5" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                );
+              })()}
             </div>
-            <div className="chart-box">
-              <h3>{`Isuzu Forward — ${chartStatus === "Completed" ? "Sold" : chartStatus === "Canceled" ? "Canceled" : "Returned"}`}</h3>
-              <PieChartBox data={getModelPieData(FORWARD_MODELS, chartStatus)} showAmount={chartStatus === "Completed"} monthOrders={monthOrders} title={`Isuzu Forward — ${chartStatus === "Completed" ? "Sold" : chartStatus === "Canceled" ? "Canceled" : "Returned"}`} />
+
+            <div className="chart-box full-row">
+              <h3>Revenue Growth by Series (Last 12 Months)</h3>
+              {allOrders.length === 0 ? (
+                <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>No orders data available.</div>
+              ) : (() => {
+                const now = new Date();
+                const months = [];
+                for (let i = 11; i >= 0; i--) {
+                  const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                  months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+                }
+                const seriesList = [
+                  { name: 'Elf', models: ELF_MODELS, color: '#4F46E5' },
+                  { name: 'Forward', models: FORWARD_MODELS, color: '#06B6D4' },
+                  { name: 'Giga', models: GIGA_MODELS, color: '#F59E0B' }
+                ];
+                const lineData = months.map(monthStr => {
+                  const monthStart = new Date(monthStr + '-01');
+                  const monthEnd = new Date(monthStart); monthEnd.setMonth(monthEnd.getMonth() + 1);
+                  const obj = { period: monthStr };
+                  seriesList.forEach(series => {
+                    obj[series.name] = allOrders.filter(o => normalizeStatus(o.status) === 'completed' && o.order_timestamp && new Date(o.order_timestamp) >= monthStart && new Date(o.order_timestamp) < monthEnd && series.models.includes(o.truck_model))
+                      .reduce((sum, o) => sum + (parsePrice(o.total_price)), 0);
+                  });
+                  return obj;
+                });
+                return (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <LineChart data={lineData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="period" />
+                      <YAxis tickFormatter={v => `₱${(v/1000000).toFixed(1)}M`} />
+                      <Tooltip formatter={v => `₱${Number(v).toLocaleString()}`} />
+                      <Legend />
+                      {seriesList.map(series => <Line key={series.name} type="monotone" dataKey={series.name} name={series.name} stroke={series.color} />)}
+                    </LineChart>
+                  </ResponsiveContainer>
+                );
+              })()}
             </div>
-            <div className="chart-box">
-              <h3>{`Isuzu Giga — ${chartStatus === "Completed" ? "Sold" : chartStatus === "Canceled" ? "Canceled" : "Returned"}`}</h3>
-              <PieChartBox data={getModelPieData(GIGA_MODELS, chartStatus)} showAmount={chartStatus === "Completed"} monthOrders={monthOrders} title={`Isuzu Giga — ${chartStatus === "Completed" ? "Sold" : chartStatus === "Canceled" ? "Canceled" : "Returned"}`} />
             </div>
           </div>
-          {/* --- Bar Chart: Most Popular Models Sold per Series --- */}
-          <div className="chart-box">
-            <h3>Most Popular Models Sold (Bar Chart)</h3>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart
-                data={[...getModelPieData(ELF_MODELS, "Completed"), ...getModelPieData(FORWARD_MODELS, "Completed"), ...getModelPieData(GIGA_MODELS, "Completed")]}
-                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" fontSize={12} interval={0} angle={-20} textAnchor="end" height={70}/>
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="value" fill="#4F46E5" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* --- Line Chart: Sales Growth by Series --- */}
-          <div className="chart-box">
-            <h3>Sales Growth by Series (Line Chart)</h3>
-            <ResponsiveContainer width="100%" height={260}>
-              <LineChart
-                data={getSalesGrowthData(orders)}
-                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="period" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="Elf" stroke="#4F46E5" />
-                <Line type="monotone" dataKey="Forward" stroke="#06B6D4" />
-                <Line type="monotone" dataKey="Giga" stroke="#F59E0B" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          
-
-          {/* --- Map Chart: Sales by Region/Province/City (skipped unless region data exists) --- */}
-          {/* If you have region/city data, you can use recharts ScatterChart or a map library here. */}
         </section>
       )}
     </div>
   );
-}
-
-// Helper for line chart: sales growth by series
-function getSalesGrowthData(orders) {
-  // Group by month for each series
-  const series = [
-    { key: "Elf", models: ELF_MODELS },
-    { key: "Forward", models: FORWARD_MODELS },
-    { key: "Giga", models: GIGA_MODELS }
-  ];
-
-  // Get all months in data, and fill in missing months up to current
-  const completedOrders = orders.filter(o => o.status === "Completed");
-  const orderMonths = completedOrders.map(o => o.order_timestamp.slice(0, 7));
-  const uniqueMonths = Array.from(new Set(orderMonths));
-  uniqueMonths.sort();
-
-  // Fill in missing months between earliest and current month
-  const now = new Date();
-  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  let months = [];
-  if (uniqueMonths.length > 0) {
-    let [startYear, startMonth] = uniqueMonths[0].split("-");
-    startYear = Number(startYear);
-    startMonth = Number(startMonth);
-    let [endYear, endMonth] = currentMonthStr.split("-");
-    endYear = Number(endYear);
-    endMonth = Number(endMonth);
-
-    let y = startYear, m = startMonth;
-    while (y < endYear || (y === endYear && m <= endMonth)) {
-      months.push(`${y}-${String(m).padStart(2, "0")}`);
-      m++;
-      if (m > 12) {
-        m = 1;
-        y++;
-      }
-    }
-  } else {
-    months = [currentMonthStr];
-  }
-
-  return months.map(month => {
-    const obj = { period: month };
-    series.forEach(s => {
-      obj[s.key] = orders.filter(o =>
-        o.status === "Completed" &&
-        o.order_timestamp.startsWith(month) &&
-        s.models.includes(o.truck_model)
-      ).reduce((sum, o) => sum + (o.quantity || 1), 0);
-    });
-    return obj;
-  });
 }

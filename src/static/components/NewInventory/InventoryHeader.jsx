@@ -186,6 +186,11 @@ export const images = [
     basePrice: 825000,
     specifications: {
       colors: ["white", "blue", "red", "black"],
+      PayloadCapacity: [
+        { label: "2,000 kg", priceModifier: 0 },
+        { label: "3,000 kg", priceModifier: 5000 },
+        { label: "4,000 kg", priceModifier: 10000 }
+      ],
       LiftingCapacity: [
         { label: "200 kg", priceModifier: 0 },
         { label: "500 kg", priceModifier: 10000 }
@@ -231,6 +236,11 @@ export const images = [
     basePrice: 875000,
     specifications: {
       colors: ["white", "blue", "red", "black"],
+      PayloadCapacity: [
+        { label: "2,000 kg", priceModifier: 0 },
+        { label: "3,000 kg", priceModifier: 5000 },
+        { label: "4,000 kg", priceModifier: 10000 }
+      ],
       TowingCapacity: [
         { label: "3,000 kg", priceModifier: 0 },
         { label: "4,000 kg", priceModifier: 5000 },

@@ -100,6 +100,46 @@
 .orders-table-container {
   overflow-x: auto;
 }
+
+/* Make the orders table container vertically scrollable with a max height */
+.orders-table-container {
+  max-height: 520px; /* adjust as needed */
+  overflow: auto;
+  position: relative;
+}
+
+/* Footer with pagination fixed at the bottom of the orders-section */
+.table-footer-fixed {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0), #fff 60%);
+  z-index: 20;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pagination-button {
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pagination-button:disabled {
+  background: #f3f4f6;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.page-numbers { display: flex; gap: 6px; }
+.page-number { min-width: 32px; padding: 6px 10px; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; }
+.page-number.active { background: #2563eb; color: #fff; font-weight: 700; border: 2px solid #2563eb; cursor: default; }
 .orders-table {
   width: 100%;
   border-collapse: collapse;
@@ -271,6 +311,19 @@
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.03);
   padding: 8px;
+}
+
+.row-charts {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Make row charts wider */
+.chart-box.full-row {
+  width: 200%;
+  margin: 0 auto;
+  margin-left: 200px;
 }
 
 /* Footer */

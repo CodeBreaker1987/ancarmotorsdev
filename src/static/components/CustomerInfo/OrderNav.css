@@ -168,6 +168,52 @@
   margin-left: 10px;
 }
 
+.table-footer-fixed {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0), #fff 60%);
+  z-index: 20;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination-button {
+  padding: 8px 16px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pagination-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.pending-total {
+  font-size: 1.1rem;
+  color: #dc2626;
+  padding: 8px 16px;
+  background-color: #fee2e2;
+  border-radius: 6px;
+}
+
 /* Add to the end of each CSS file or update existing @media blocks */
 
 /* Universal mobile-friendly styles */

@@ -18,7 +18,7 @@ export async function handler(event) {
   try {
     const { orderId, status } = JSON.parse(event.body);
     
-    if (!["pending", "paid", "continuous"].includes(status)) {
+    if (!["Pending", "Paid", "Continuous"].includes(status)) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: "Invalid status" })

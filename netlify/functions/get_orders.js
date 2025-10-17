@@ -19,10 +19,14 @@ export async function handler(event, context) {
     page = parseInt(params.page) || 1;
     limit = parseInt(params.limit) || 10;
   } else if (event.httpMethod === "POST") {
-    const parsed = JSON.parse(event.body);
-    userId = parsed.userId;
-    page = parsed.page || 1;
-    limit = parsed.limit || 10;
+    try {
+      const parsed = JSON.parse(event.body || "{}");
+      userId = parsed.userId || parsed.userid || parsed.userID;
+      page = parsed.page || parsed.currentPage || 1;
+      limit = parsed.limit || 10;
+    } catch (e) {
+      console.warn("Failed to parse POST body, falling back to query params", e);
+    }
   } else {
     return {
       statusCode: 405,
@@ -30,9 +34,6 @@ export async function handler(event, context) {
     };
   }
 
-  console.log("Incoming request:", event);
-
-  // Parse query parameters for pagination
   const offset = (page - 1) * limit;
 
   if (!userId) {
@@ -42,59 +43,65 @@ export async function handler(event, context) {
     };
   }
 
-  // Modified query to include payment_status and calculate totals
-  const query = `
-    WITH OrdersData AS (
-      SELECT
-        orderid,
-        order_timestamp,
-        userid,
-        username,
-        truck_model,
-        body_color,
-        payload_capacity,
-        towing_capacity,
-        lifting_capacity,
-        transmission,
-        quantity,
-        base_price,
-        total_price,
-        shipping_option,
-        payment_method,
-        status,
-        payment_status,
-        COUNT(*) OVER() as total_count,
-        SUM(CASE 
-          WHEN status IN ('Pending', 'Processing') 
-          AND payment_status = 'pending' 
-          THEN total_price 
-          ELSE 0 
-        END) OVER() as pending_total
-      FROM public.orders
-      WHERE userid = $1
-      ORDER BY order_timestamp DESC
-      LIMIT $2 OFFSET $3
-    )
-    SELECT 
-      *,
-      total_count,
-      pending_total
-    FROM OrdersData
+  // Query page rows
+  const listQuery = `
+    SELECT
+      orderid,
+      order_timestamp,
+      userid,
+      username,
+      truck_model,
+      body_color,
+      payload_capacity,
+      towing_capacity,
+      lifting_capacity,
+      transmission,
+      quantity,
+      base_price,
+      total_price,
+      shipping_option,
+      payment_method,
+      status,
+      payment_status
+    FROM public.orders
+    WHERE userid = $1
+    ORDER BY order_timestamp DESC
+    LIMIT $2 OFFSET $3
+  `;
+
+  // Aggregate totals across all matching orders (not limited by pagination)
+  const totalsQuery = `
+    SELECT
+      COUNT(*)::int AS total_count,
+      COALESCE(SUM(CASE WHEN status IN ('Pending','Processing') THEN total_price ELSE 0 END),0) AS active_pending_total,
+      COALESCE(SUM(CASE WHEN status = 'Completed' THEN total_price ELSE 0 END),0) AS completed_total,
+      COALESCE(SUM(CASE WHEN status = 'Canceled' THEN total_price ELSE 0 END),0) AS canceled_total
+    FROM public.orders
+    WHERE userid = $1
   `;
 
   try {
-    const result = await pool.query(query, [userId, limit, offset]);
-    const totalCount = result.rows[0]?.total_count || 0;
-    const pendingTotal = result.rows[0]?.pending_total || 0;
+    const [listRes, totalsRes] = await Promise.all([
+      pool.query(listQuery, [userId, limit, offset]),
+      pool.query(totalsQuery, [userId]),
+    ]);
+
+    const orders = listRes.rows || [];
+    const totalCount = Number(totalsRes.rows[0]?.total_count || 0);
+    const activePendingTotal = Number(totalsRes.rows[0]?.active_pending_total || 0);
+    const completedTotal = Number(totalsRes.rows[0]?.completed_total || 0);
+    const canceledTotal = Number(totalsRes.rows[0]?.canceled_total || 0);
 
     return {
       statusCode: 200,
       body: JSON.stringify({
-        orders: result.rows,
+        orders,
         totalCount,
-        pendingTotal,
-        totalPages: Math.ceil(totalCount / limit),
-        currentPage: parseInt(page),
+        activePendingTotal,
+        completedTotal,
+        canceledTotal,
+        totalPages: totalCount > 0 ? Math.ceil(totalCount / limit) : 1,
+        currentPage: Number(page),
       }),
     };
   } catch (err) {

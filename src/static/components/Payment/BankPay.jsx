@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "./BankPay.css";
 
 // --- Bank Payment Page ---
-export default function BankPay({ amount, onSuccess, onFail }) {
+export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () => {} }) {
   const [bank, setBank] = useState("BDO");
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -77,7 +77,7 @@ export default function BankPay({ amount, onSuccess, onFail }) {
             placeholder="CVV"
           />
         </label>
-        <button type="submit">Pay ₱{amount.toLocaleString()}</button>
+        <button type="submit">Pay ₱{(amount || 0).toLocaleString()}</button>
       </form>
     </div>
   );

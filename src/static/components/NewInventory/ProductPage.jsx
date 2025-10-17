@@ -57,6 +57,10 @@ const ProductPage = () => {
     window.dispatchEvent(event);
   };
 
+useEffect(() => {
+  console.log("ProductPage user data:", user);
+}, [user]);
+
   if (!truck) {
     return <h2 className="text-center text-red-600">Product not found 🚚</h2>;
   }
@@ -92,6 +96,7 @@ const ProductPage = () => {
         {/* === Truck Order Form === */}
         <TruckOrderForm
           truck={truck}
+          user={user}
           basePrice={truck.basePrice}
           onOrderPlaced={() => {}}
           onOpenOverlay={handleOpenOverlay}

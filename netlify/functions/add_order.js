@@ -1,8 +1,7 @@
-// netlify/functions/add_order.js
 import pkg from "pg";
 const { Pool } = pkg;
 
-// PostgreSQL connection
+// 🧩 PostgreSQL connection setup
 const pool = new Pool({
   host: process.env.NEON_HOST,
   database: process.env.NEON_DB,
@@ -12,7 +11,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-export async function handler(event, context) {
+export async function handler(event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -21,9 +20,8 @@ export async function handler(event, context) {
   }
 
   try {
-    const data = JSON.parse(event.body);
-
-    // Extract order-related fields
+    const data = JSON.parse(event.body || "{}");
+console.log("🛰️ Received order data:", JSON.stringify(data, null, 2));
     const {
       userId,
       username,
@@ -37,20 +35,21 @@ export async function handler(event, context) {
       base_price,
       total_price,
       shipping_option,
+      shippingDate,
       payment_method,
       status,
-      shippingDate,
+      payment_status,
     } = data;
 
-    // 🧩 Basic validation
-    if (!userId || !truck_model || !total_price) {
+    // 🧩 Validate required fields
+    if (!userId || !username || !truck_model || !total_price) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "Missing required fields" }),
+        body: JSON.stringify({ error: "Missing required user or truck data" }),
       };
     }
 
-    // ✅ Insert order into database
+    // 🧾 Prepare SQL Insert Statement (no timestamp field included)
     const insertQuery = `
       INSERT INTO public.orders (
         userid,
@@ -66,46 +65,50 @@ export async function handler(event, context) {
         total_price,
         shipping_option,
         payment_method,
-        status
+        status,
+        payment_status
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14
-      ) RETURNING userid;
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15
+      )
+      RETURNING orderid;
     `;
 
     const values = [
       userId,
       username,
       truck_model,
-      body_color,
-      payload_capacity,
-      towing_capacity,
-      lifting_capacity,
-      transmission,
-      quantity,
-      base_price,
+      body_color || null,
+      payload_capacity || null,
+      towing_capacity || null,
+      lifting_capacity || null,
+      transmission || null,
+      quantity || 1,
+      base_price || 0,
       total_price,
-      shipping_option === "date" ? shippingDate : shipping_option,
-      payment_method,
+      shipping_option === "date" ? shippingDate : shipping_option || "Standard",
+      payment_method || "Bank",
       status || "Pending",
+      payment_status || "pending",
     ];
 
     const result = await pool.query(insertQuery, values);
-    const orderId = result.rows[0].userid;
 
-    // ✅ Return success response
     return {
       statusCode: 200,
       body: JSON.stringify({
         success: true,
         message: "Order created successfully",
-        orderId,
+        orderId: result.rows[0]?.orderid || null,
       }),
     };
   } catch (error) {
     console.error("Add order error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to insert order" }),
+      body: JSON.stringify({
+        error: "Failed to insert order",
+        details: error.message,
+      }),
     };
   }
 }
