@@ -122,6 +122,21 @@
   border-top: 1px solid #e5e7eb;
 }
 
+.table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pagination-controls .button {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .pagination-button {
   padding: 6px 16px;
   border-radius: 6px;
@@ -130,6 +145,7 @@
   color: #fff;
   font-weight: 600;
   cursor: pointer;
+  margin: auto 30px;
 }
 .pagination-button:disabled {
   background: #f3f4f6;
@@ -289,12 +305,12 @@
   padding: 18px 16px;
   margin: 50px 0;
   background: #e6e6e6;
-  box-shadow: 0 2px 8px rgba(79,70,229,0.04);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
   transition: box-shadow 0.2s;
 }
 
 .chart-box:hover {
-  box-shadow: 0 4px 16px rgba(79,70,229,0.10);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
 }
 
 .chart-box h3 {
@@ -473,5 +489,49 @@
   }
   .productDetails {
     font-size: 1rem !important;
+  }
+}
+
+.global-resend-button {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1;
+}
+
+.resend-button {
+  background-color: #4F46E5;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto; /* Push to far right */
+}
+
+.resend-button:disabled {
+  background-color: #6B7280;
+  cursor: not-allowed;
+}
+
+.orders-table-container {
+  position: relative;
+  /* ...existing styles... */
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  font-size: 20px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }

@@ -1,5 +1,4 @@
-import pkg from "pg";
-const { Pool } = pkg;
+const { Pool } = require('pg');  // Change to CommonJS import
 
 const pool = new Pool({
   host: process.env.NEON_HOST,
@@ -10,49 +9,69 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-export async function handler(event, context) {
+exports.handler = async (event, context) => {  // Change to CommonJS export
+  // Add CORS headers
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+
+  // Handle preflight
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 200, headers };
+  }
+
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      body: JSON.stringify({ error: "Method Not Allowed" }),
+      headers,
+      body: JSON.stringify({ error: "Method not allowed" }),
     };
   }
 
   try {
-    const { orderId, status } = JSON.parse(event.body);
+    const { orderid, status } = JSON.parse(event.body);
 
-    if (!orderId || !status) {
+    if (!orderid || !status) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "Missing orderId or status" }),
+        headers,
+        body: JSON.stringify({ error: "Missing orderid or status" }),
       };
     }
 
-    const queryText = `
-      UPDATE public.orders
+    // Fix SQL syntax error (remove trailing comma)
+    const query = `
+      UPDATE orders 
       SET status = $1
-      WHERE orderid = $2
-      RETURNING *;
-    `;
+      WHERE orderid = $2 
+      RETURNING *`;
 
-    const { rows } = await pool.query(queryText, [status, orderId]);
+    const result = await pool.query(query, [status, orderid]);
 
-    if (rows.length === 0) {
+    if (result.rowCount === 0) {
       return {
         statusCode: 404,
+        headers,
         body: JSON.stringify({ error: "Order not found" }),
       };
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, order: rows[0] }),
+      headers,
+      body: JSON.stringify(result.rows[0]),
     };
-  } catch (err) {
-    console.error("update order status error:", err);
+  } catch (error) {
+    console.error("Database error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error" }),
+      headers,
+      body: JSON.stringify({
+        error: "Internal server error",
+        details: error.message,
+      }),
     };
   }
-}
+};

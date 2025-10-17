@@ -3,6 +3,7 @@ import pkg from "pg";
 import emailjs from "@emailjs/nodejs";
 const { Pool } = pkg;
 
+// ✅ Keep one pool instance (important for Netlify)
 const pool = new Pool({
   host: process.env.NEON_HOST,
   database: process.env.NEON_DB,
@@ -12,113 +13,96 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// Configure EmailJS
+// ✅ Initialize EmailJS securely
+if (!process.env.EMAILJS_ANCAR_PUBLIC_KEY || !process.env.EMAILJS_ANCAR_PRIVATE_KEY) {
+  console.warn("⚠️ Missing EmailJS credentials in environment variables.");
+}
+
 emailjs.init({
   publicKey: process.env.EMAILJS_ANCAR_PUBLIC_KEY,
   privateKey: process.env.EMAILJS_ANCAR_PRIVATE_KEY,
 });
 
-
-export async function handler(event, context) {
+export async function handler(event) {
   try {
-    // 1️⃣ Query all pending or processing orders created within 10 minutes
+    const body = event.body ? JSON.parse(event.body) : {};
+    const { userid, statusGroup = "active" } = body;
+
+    const activeStatuses = ["Pending", "Processing", "Awaiting Shipment", "Shipped", "Out for Delivery"];
+    const closedStatuses = ["Completed", "Canceled", "Returned"];
+    const statuses = statusGroup === "completed" ? closedStatuses : activeStatuses;
+
+    console.log(`📧 Generating slip for ${userid || "ALL"} users [${statusGroup}]`);
+
     const ordersQuery = `
       SELECT 
-        o.*,
-        u.email_address,
-        u.first_name,
-        u.last_name,
-        SUM(o.total_price) OVER (PARTITION BY o.userid) as total_pending
+        o.*, u.email_address, u.first_name, u.last_name,
+        SUM(o.total_price) OVER (PARTITION BY o.userid) as total_amount
       FROM public.orders o
       JOIN public.customers u ON o.userid = u.userid
-      WHERE o.status IN ('Pending', 'Processing')
-      ORDER BY o.userid, o.orderid DESC
+      WHERE o.status = ANY($1)
+      ${userid ? "AND o.userid = $2" : ""}
+      ORDER BY o.userid, o.orderid DESC;
     `;
 
-    const result = await pool.query(ordersQuery);
-
+    const result = await pool.query(ordersQuery, userid ? [statuses, userid] : [statuses]);
     if (result.rows.length === 0) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ message: "No pending orders found" }),
-      };
+      return { statusCode: 200, body: JSON.stringify({ message: "No orders for this slip type" }) };
     }
 
-    // 2️⃣ Group orders by user
     const userOrders = {};
-    result.rows.forEach(order => {
+    for (const order of result.rows) {
       if (!userOrders[order.userid]) {
         userOrders[order.userid] = {
-          orders: [],
           email: order.email_address,
           name: `${order.first_name} ${order.last_name}`,
-          total: order.total_pending,
+          total: order.total_amount,
+          orders: [],
         };
       }
       userOrders[order.userid].orders.push(order);
-    });
+    }
 
-    // 3️⃣ Send email for each user
+    // Send one email per user
     for (const userId in userOrders) {
       const userData = userOrders[userId];
+      const ordersList = userData.orders.map(o => `
+🆔 Order #${o.orderid}
+📅 Date: ${o.order_timestamp}
 
-      // 🧾 Format each order for readability
-      const ordersList = userData.orders.map(order => {
-        const createdAt = new Date(order.created_at).toLocaleString("en-PH", {
-          dateStyle: "medium",
-          timeStyle: "short",
-        });
+🚛 Model: ${o.truck_model}
+🎨 Color: ${o.body_color}
+⚙️ Transmission: ${o.transmission}
+📦 Payload Capacity: ${o.payload_capacity}
+🏗️ Lifting Capacity: ${o.lifting_capacity || "N/A"}
+🚚 Towing Capacity: ${o.towing_capacity || "N/A"}
+🔢 Quantity: ${o.quantity}
 
-        return `
-🆔 Order #${order.orderid}
-📅 Date: ${order.order_timestamp}
+💰 Unit Price: ₱${Number(o.base_price).toLocaleString()}
+💵 Total Price: ₱${Number(o.total_price).toLocaleString()}
 
-🚛 Model: ${order.truck_model}
-🎨 Color: ${order.body_color}
-⚙️ Transmission: ${order.transmission}
-📦 Payload Capacity: ${order.payload_capacity}
-🏗️ Lifting Capacity: ${order.lifting_capacity || "N/A"}
-🚚 Towing Capacity: ${order.towing_capacity || "N/A"}
-🔢 Quantity: ${order.quantity}
+📦 Shipping: ${o.shipping_option}
+💳 Payment Method: ${o.payment_method}
+📈 Order Status: ${o.status}
+💸 Payment Status: ${o.payment_status || "Not yet paid"}
+      `.trim()).join("\n\n──────────────────────────────\n\n");
 
-💰 Unit Price: ₱${Number(order.base_price).toLocaleString()}
-💵 Total Price: ₱${Number(order.total_price).toLocaleString()}
-
-📦 Shipping: ${order.shipping_option}
-💳 Payment Method: ${order.payment_method}
-📈 Order Status: ${order.status}
-💸 Payment Status: ${order.payment_status || "Not yet paid"}
-        `.trim();
-      }).join("\n\n──────────────────────────────\n\n");
-
-      // 4️⃣ Send email using EmailJS
-      await emailjs.send(
-        "service_y38zirj", // your EmailJS service ID
-        "template_68j0zpr", // your EmailJS template ID
-        {
-          to_name: userData.name,
-          to_email: userData.email,
-          orders: ordersList,
-          total_amount: `₱${Number(userData.total).toLocaleString()}`,
-          payment_instructions: `
+      await emailjs.send("service_y38zirj", "template_68j0zpr", {
+        to_name: userData.name,
+        to_email: userData.email,
+        orders: ordersList,
+        total_amount: `₱${Number(userData.total).toLocaleString()}`,
+        payment_instructions: `
 Please complete your payment within 48 hours to process your order.
 Accepted methods: Bank Transfer, Cash Payment, Check, or Installment.
 Contact our support if you need assistance.
-          `.trim(),
-        }
-      );
+        `.trim(),
+      });
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: "Payment slips sent successfully" }),
-    };
-
-  } catch (error) {
-    console.error("Error generating slips:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Failed to generate payment slips" }),
-    };
+    return { statusCode: 200, body: JSON.stringify({ message: "Slip emails sent successfully." }) };
+  } catch (err) {
+    console.error("❌ Error creating slip:", err);
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 }

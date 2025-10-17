@@ -1,4 +1,4 @@
-// netlify/functions/get_admin.js
+/m // netlify/functions/get_admin.js
 import pkg from "pg";
 const { Pool } = pkg;
 

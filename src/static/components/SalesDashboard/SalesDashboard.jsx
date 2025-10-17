@@ -1,5 +1,5 @@
 // src/static/components/SalesDashboard/SalesDashboard.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../Context/UserContext.jsx";
 import {
@@ -17,8 +17,11 @@ import {
   LineChart,
   Line,
 } from "recharts";
+import { BiLoaderAlt } from 'react-icons/bi';
 import "./SalesDashboard.css";
 import AncarLogo from "../../../assets/media/AncarLogo.7ad7473b37e000adbeb6.png";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 /* ---------- Constants ---------- */
 
@@ -42,7 +45,6 @@ const STATUS_OPTIONS = [
   "Returned",
 ];
 
-// Display options are capitalized; values we send/compare are normalized to lowercase
 const PAYMENT_STATUS_OPTIONS = [
   { value: "pending", label: "Pending" },
   { value: "paid", label: "Paid" },
@@ -73,18 +75,15 @@ const GIGA_MODELS = [
 /* ---------- Helper utilities ---------- */
 
 const normalizeStatus = (s) => String(s || "").trim().toLowerCase();
+
 const normalizeTimestampToISO = (ts) => {
   if (!ts) return null;
-  // handle PostgreSQL 'YYYY-MM-DD HH:mm:SS.ssssss' by replacing space with 'T'
   try {
     const str = String(ts);
-    // if already contains 'T' or 'Z' assume ISO
     if (str.includes("T") || str.endsWith("Z")) return new Date(str).toISOString();
-    // else replace first space with 'T' and append Z (UTC) fallback
     const maybeIso = str.replace(" ", "T");
     const d = new Date(maybeIso);
     if (!isNaN(d.getTime())) return d.toISOString();
-    // last resort: let Date try the original string
     const fallback = new Date(str);
     return isNaN(fallback.getTime()) ? null : fallback.toISOString();
   } catch (e) {
@@ -102,26 +101,24 @@ const parsePrice = (v) => {
 /* ---------- Component ---------- */
 
 export default function SalesDashboard() {
-  const { user, setUser } = useUser();
+  const { user, setUser, logout } = useUser();
   const navigate = useNavigate();
 
-  const [orders, setOrders] = useState([]); // table data (may be filtered/paginated)
-  const [allOrders, setAllOrders] = useState([]); // full dataset for charts
+  const [orders, setOrders] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
   const [filterIdx, setFilterIdx] = useState(0);
   const [month, setMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   });
   const [loading, setLoading] = useState(true);
-  const [chartStatus, setChartStatus] = useState("Completed");
-  const [visibleColumns, setVisibleColumns] = useState(() => [
+  const [visibleColumns, setVisibleColumns] = useState([
     "username","first_name","last_name","home_address","email_address","phone_number",
     "truck_model","body_color","payload_capacity","towing_capacity","lifting_capacity",
     "transmission","quantity","base_price","total_price","shipping_option","payment_method"
   ]);
   const [showColDropdown, setShowColDropdown] = useState(false);
 
-  // search/sort/pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [searchField, setSearchField] = useState("orderid");
   const [sortField, setSortField] = useState("");
@@ -129,7 +126,9 @@ export default function SalesDashboard() {
   const [ordersPage, setOrdersPage] = useState(0);
   const ORDERS_PER_PAGE = 10;
 
-  // Management level helper
+  const [refreshTimer, setRefreshTimer] = useState(null);
+  const [isResending, setIsResending] = useState(false);
+
   const positionLevels = {
     "ceo": "top",
     "chief operating officer": "top",
@@ -140,67 +139,38 @@ export default function SalesDashboard() {
     "sales agent": "bottom",
     "owner": "owner",
   };
-  function getManagementLevel(position) {
-    if (!position || typeof position !== "string") return "bottom";
-    const normalized = position.trim().toLowerCase();
+  const userLevel = (pos => {
+    if (!pos || typeof pos !== "string") return "bottom";
+    const normalized = pos.trim().toLowerCase();
     return positionLevels[normalized] || "bottom";
-  }
-  const userLevel = getManagementLevel(user?.company_position || user?.position);
+  })(user?.company_position || user?.position);
 
-  // runtime
-  const [currentTime, setCurrentTime] = useState(() => new Date());
-  const [runtime, setRuntime] = useState(0);
-  useEffect(() => {
-    const start = Date.now();
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-      setRuntime(Math.floor((Date.now() - start) / 1000));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  function formatDateTime(dt) {
-    return dt ? new Date(dt).toLocaleString() : "-";
-  }
-  function formatRuntime(sec) {
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = sec % 60;
-    return `${h > 0 ? h + 'h ' : ''}${m > 0 ? m + 'm ' : ''}${s}s`;
-  }
-
-  /* ---------- Data fetcher ---------- */
+  // Fetch functions
   const fetchOrders = async () => {
     if (!user) return;
     setLoading(true);
     try {
       const currentFilter = FILTERS[filterIdx];
-      // send normalized filter statuses to server
       const statusFilter = currentFilter.statuses.map(s => String(s).trim());
-      // POST get_all_orders with month and statuses (server uses month if provided)
+
       const [ordersRes, allOrdersRes] = await Promise.all([
         fetch("/.netlify/functions/get_all_orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            month, // send month so server can paginate/limit if needed
+            month,
             statusFilter,
             page: ordersPage + 1,
             limit: ORDERS_PER_PAGE,
           }),
         }),
-        // keep get_sales_data as GET (returns all orders for charts)
         fetch("/.netlify/functions/get_sales_data"),
       ]);
 
-      // defensive parsing + logging
       const ordersText = await ordersRes.text();
-      console.debug("get_all_orders raw:", ordersText);
       const allOrdersText = await allOrdersRes.text();
-      console.debug("get_sales_data raw:", allOrdersText);
 
-      let ordersJson = {};
-      let allOrdersJson = {};
+      let ordersJson = {}, allOrdersJson = {};
       try {
         ordersJson = ordersText ? JSON.parse(ordersText) : {};
       } catch (e) {
@@ -215,43 +185,37 @@ export default function SalesDashboard() {
       }
 
       if (!ordersRes.ok) {
-        console.error("get_all_orders returned error:", ordersJson);
         throw new Error(ordersJson.error || "Failed to fetch orders");
       }
       if (!allOrdersRes.ok) {
-        console.error("get_sales_data returned error:", allOrdersJson);
         throw new Error(allOrdersJson.error || "Failed to fetch sales data");
       }
 
-      // normalize keys and timestamps
-      const normalizeRow = (r) => {
-        const normalized = {
-          ...r,
-          orderid: r.orderid ?? r.orderId ?? r.id,
-          userid: r.userid ?? r.user_id ?? r.userId,
-          username: r.username ?? r.user_name,
-          truck_model: r.truck_model ?? r.truckModel,
-          quantity: r.quantity ?? r.qty,
-          total_price: parsePrice(r.total_price ?? r.totalPrice),
-          base_price: parsePrice(r.base_price ?? r.basePrice),
-          payment_status: (r.payment_status ?? r.paymentStatus ?? "pending"),
-          status: r.status ?? r.order_status ?? "",
-          // convert timestamp to ISO (frontend uses new Date(o.order_timestamp) safely)
-          order_timestamp: normalizeTimestampToISO(r.order_timestamp ?? r.created_at ?? r.order_date) || r.order_timestamp || null,
-          // keep any other fields
-          first_name: r.first_name ?? r.firstName ?? "",
-          last_name: r.last_name ?? r.lastName ?? "",
-          home_address: r.home_address ?? r.address ?? "",
-          email_address: r.email_address ?? r.email ?? "",
-          phone_number: r.phone_number ?? r.phone ?? ""
-        };
-        return normalized;
-      };
+      const normalizeRow = (r) => ({
+        ...r,
+        orderid: r.orderid ?? r.orderId ?? r.id,
+        userid: r.userid ?? r.user_id ?? r.userId,
+        username: r.username ?? r.user_name,
+        truck_model: r.truck_model ?? r.truckModel,
+        quantity: r.quantity ?? r.qty,
+        total_price: parsePrice(r.total_price ?? r.totalPrice),
+        base_price: parsePrice(r.base_price ?? r.basePrice),
+        payment_status: (r.payment_status ?? r.paymentStatus ?? "pending"),
+        status: r.status ?? r.order_status ?? "",
+        order_timestamp: normalizeTimestampToISO(r.order_timestamp ?? r.created_at ?? r.order_date) || r.order_timestamp || null,
+        first_name: r.first_name ?? r.firstName ?? "",
+        last_name: r.last_name ?? r.lastName ?? "",
+        home_address: r.home_address ?? r.address ?? "",
+        email_address: r.email_address ?? r.email ?? "",
+        phone_number: r.phone_number ?? r.phone ?? "",
+      });
 
-      const ordersArr = Array.isArray(ordersJson.orders) ? ordersJson.orders.map(normalizeRow) : [];
-      const allOrdersArr = Array.isArray(allOrdersJson.orders) ? allOrdersJson.orders.map(normalizeRow) : [];
-
-      console.debug(`Parsed orders: ${ordersArr.length}, allOrders: ${allOrdersArr.length}`);
+      const ordersArr = Array.isArray(ordersJson.orders)
+        ? ordersJson.orders.map(normalizeRow)
+        : [];
+      const allOrdersArr = Array.isArray(allOrdersJson.orders)
+        ? allOrdersJson.orders.map(normalizeRow)
+        : [];
 
       setOrders(ordersArr);
       setAllOrders(allOrdersArr);
@@ -264,18 +228,14 @@ export default function SalesDashboard() {
     }
   };
 
-  /* ---------- Effects ---------- */
   useEffect(() => {
     if (!user) {
       navigate("/", { replace: true });
     }
   }, [user, navigate]);
 
-  // include month and page in dependencies so charts/table update when month changes
   useEffect(() => {
-    if (user) {
-      fetchOrders();
-    }
+    if (user) fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.userid, filterIdx, month, ordersPage]);
 
@@ -283,65 +243,92 @@ export default function SalesDashboard() {
     setOrdersPage(0);
   }, [filterIdx, searchTerm, searchField, sortField, sortAsc, month]);
 
-  /* ---------- Action handlers ---------- */
-
-  const { logout } = useUser();
-  const handleLogout = () => logout();
+  const scheduleSlipRefresh = async (userid, slipType = "active") => {
+    try {
+      await fetch("/.netlify/functions/schedule_slip_refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userid, slipType }),
+      });
+      console.log(`Scheduled slip refresh for user ${userid} type ${slipType}`);
+    } catch (err) {
+      console.error("Error scheduling slip refresh:", err);
+    }
+  };
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      // keep status value exactly as shown (server may expect capitalized) — normalize if server needs lowercase
       const res = await fetch("/.netlify/functions/update_order_status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, status: newStatus }),
+        body: JSON.stringify({ 
+          orderid: orderId,     // Changed from orderId to orderid to match backend
+          status: newStatus 
+        })
       });
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        throw new Error(txt || "Failed to update order status");
+
+      // Try to get response text first
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('Invalid JSON response:', text);
+        throw new Error('Invalid server response');
       }
 
-      // update both sets so table + charts reflect change
-      setOrders(prev => prev.map(o => o.orderid === orderId ? { ...o, status: newStatus } : o));
-      setAllOrders(prev => prev.map(o => o.orderid === orderId ? { ...o, status: newStatus } : o));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update order status");
+      }
+
+      // Update local state
+      setOrders(prev => prev.map(o => 
+        o.orderid === orderId ? { ...o, status: newStatus } : o
+      ));
+      setAllOrders(prev => prev.map(o => 
+        o.orderid === orderId ? { ...o, status: newStatus } : o
+      ));
+
+      toast.success(`Order status updated to ${newStatus}`);
+
     } catch (err) {
       console.error("Error updating status:", err);
-      alert("Error updating status: " + (err.message || err));
+      toast.error(err.message || "Failed to update order status");
     }
   };
 
   const handlePaymentStatusChange = async (orderId, newStatusRaw) => {
     try {
-      const newStatus = normalizeStatus(newStatusRaw); // backend expects lowercase in your function
-      const response = await fetch('/.netlify/functions/update_payment_status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, status: newStatus })
+      const newStatus = normalizeStatus(newStatusRaw);
+      const response = await fetch("/.netlify/functions/update_payment_status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, status: newStatus }),
       });
       const txt = await response.text();
       let json = {};
       try { json = txt ? JSON.parse(txt) : {}; } catch(e) { console.error("Invalid JSON from update_payment_status:", txt); }
 
       if (!response.ok) {
-        console.error("Payment update failed:", json);
-        throw new Error(json.error || 'Failed to update payment status');
+        throw new Error(json.error || "Failed to update payment status");
       }
 
-      // Sync table and charts
       setOrders(prev => prev.map(o => o.orderid === orderId ? { ...o, payment_status: newStatus } : o));
       setAllOrders(prev => prev.map(o => o.orderid === orderId ? { ...o, payment_status: newStatus } : o));
-    } catch (error) {
-      console.error('Error updating payment status:', error);
-      alert('Failed to update payment status');
+
+      const changedOrder = orders.find(o => o.orderid === orderId);
+      if (changedOrder?.userid) {
+        scheduleSlipRefresh(changedOrder.userid, "active");
+      }
+    } catch (err) {
+      console.error("Error updating payment status:", err);
+      alert("Error updating payment status: " + (err.message || err));
     }
   };
 
-  /* ---------- Filtering, Searching, Pagination ---------- */
-
   const filteredOrders = useMemo(() => {
-    // use lowercase trimmed statuses for comparison
     const filterStatuses = FILTERS[filterIdx].statuses.map(s => normalizeStatus(s));
-    let filtered = orders.filter((o) => filterStatuses.includes(normalizeStatus(o.status)));
+    let filtered = orders.filter(o => filterStatuses.includes(normalizeStatus(o.status)));
 
     if (searchTerm.trim()) {
       const term = searchTerm.trim().toLowerCase();
@@ -372,9 +359,6 @@ export default function SalesDashboard() {
 
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PER_PAGE));
 
-  /* ---------- Chart helpers ---------- */
-
-  // Total revenue for selected month (case-insensitive status check)
   const soldRevenue = useMemo(() => {
     const statusNeeded = "completed";
     const monthStart = new Date(month + "-01");
@@ -382,20 +366,90 @@ export default function SalesDashboard() {
     monthEnd.setMonth(monthEnd.getMonth() + 1);
 
     return allOrders
-      .filter(o => normalizeStatus(o.status) === statusNeeded && (() => {
-        const t = o.order_timestamp ? new Date(o.order_timestamp) : null;
-        return t && t >= monthStart && t < monthEnd;
-      })())
-      .reduce((sum, o) => sum + (parsePrice(o.total_price)), 0);
+      .filter(o => normalizeStatus(o.status) === statusNeeded)
+      .filter(o => {
+        const dt = o.order_timestamp ? new Date(o.order_timestamp) : null;
+        return dt && dt >= monthStart && dt < monthEnd;
+      })
+      .reduce((sum, o) => sum + parsePrice(o.total_price), 0);
   }, [allOrders, month]);
 
-  /* ---------- Render ---------- */
+  const scheduleRefresh = useCallback(() => {
+    // Clear existing timer if any
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
+    }
 
-  if (!user) return <p>Please log in to view the sales dashboard.</p>;
+    // Schedule new refresh in 5 minutes
+    const newTimer = setTimeout(async () => {
+      await fetchOrders();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    setRefreshTimer(newTimer);
+  }, [refreshTimer]);
+
+  const handleGlobalResend = async () => {
+    setIsResending(true);
+    try {
+      const currentOrders = orders.filter(order => 
+        FILTERS[filterIdx].statuses.includes(order.status)
+      );
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const order of currentOrders) {
+        try {
+          const response = await fetch('/.netlify/functions/schedule_slip_refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              userid: order.userid,
+              slipType: order.status.toLowerCase().includes('completed') ? 'completed' : 'active'
+            })
+          });
+
+          if (!response.ok) {
+            failCount++;
+            console.error(`Failed to schedule slip for order ${order.orderid}`);
+            continue;
+          }
+          successCount++;
+        } catch (err) {
+          failCount++;
+          console.error(`Error scheduling slip for order ${order.orderid}:`, err);
+        }
+      }
+      
+      if (failCount === 0) {
+        toast.success(`Successfully scheduled ${successCount} slip${successCount !== 1 ? 's' : ''} for resend`);
+      } else {
+        toast.warning(`Scheduled ${successCount} slip${successCount !== 1 ? 's' : ''}, but ${failCount} failed`);
+      }
+    } catch (error) {
+      console.error('Failed to resend slips:', error);
+      toast.error('Failed to schedule slip resends');
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  useEffect(() => {
+    scheduleRefresh();
+    return () => {
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+    };
+  }, [orders, filterIdx]); // Reschedule when orders or filter changes
+
+  if (!user) {
+    return <p>Please log in to view the sales dashboard.</p>;
+  }
 
   return (
     <div className="sales-dashboard">
-      {/* Owner return button */}
+        <ToastContainer position="top-right" />
       {user?.company_position?.toLowerCase() === "owner" && (
         <div style={{ margin: "24px 0 0 0", display: "flex", justifyContent: "flex-start" }}>
           <button
@@ -420,60 +474,73 @@ export default function SalesDashboard() {
       <header className="dashboard-header">
         <img src={AncarLogo} alt="Ancar Motors Logo" className="logo" />
         <h1>Company Sales Dashboard</h1>
-        <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
+        <button className="logout-btn" onClick={logout}>Sign Out</button>
       </header>
 
       <div className="user-info">
         <p>Welcome, <strong>{user.first_name} {user.last_name}</strong> ({user.company_position || user.position})</p>
         <p>Management Level: <strong>{userLevel.charAt(0).toUpperCase() + userLevel.slice(1)}</strong></p>
-        <p>Current Date/Time: <strong>{formatDateTime(currentTime)}</strong></p>
-        <p>Page Runtime: <strong>{formatRuntime(runtime)}</strong></p>
+        <p>Current Date/Time: <strong>{new Date().toLocaleString()}</strong></p>
       </div>
 
-      {/* Orders Table Section */}
       {(userLevel === "top" || userLevel === "bottom" || userLevel === "owner") && (
         <section className="orders-section">
           <div className="orders-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h2 style={{ fontWeight: "bold", fontSize: "30px", color: "darkblue" }}>Customer Orders</h2>
 
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <select value={filterIdx} onChange={(e) => setFilterIdx(Number(e.target.value))}
+              <select value={filterIdx} onChange={e => setFilterIdx(Number(e.target.value))}
                 style={{ border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}>
                 {FILTERS.map((f, idx) => <option key={f.label} value={idx}>{f.label}</option>)}
               </select>
-
-              <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
-
+              <input type="month" value={month} onChange={e => setMonth(e.target.value)} />
               <select value={searchField} onChange={e => setSearchField(e.target.value)}
                 style={{ border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}>
                 <option value="orderid">OrderID</option>
                 <option value="userid">UserID</option>
                 <option value="username">Username</option>
               </select>
-
-              <input type="text" placeholder={`Search by ${searchField}`} value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-                style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db" }} />
-
+              <input
+                type="text"
+                placeholder={`Search by ${searchField}`}
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db" }}
+              />
               <select value={sortField} onChange={e => setSortField(e.target.value)}
                 style={{ border: "none", background: "#2e529aff", padding: "6px 12px", borderRadius: "6px", color: "white", fontWeight: "bold" }}>
                 <option value="">Sort By</option>
                 <option value="userid">UserID</option>
                 <option value="username">Username</option>
               </select>
-
-              <button type="button" onClick={() => setSortAsc(a => !a)}
-                style={{ padding: "4px 8px", borderRadius: "6px", background: "#5282e2ff", border: "none", cursor: "pointer", color: "white", fontWeight: "bold" }}>
+              <button
+                type="button"
+                onClick={() => setSortAsc(a => !a)}
+                style={{ padding: "4px 8px", borderRadius: "6px", background: "#5282e2ff", border: "none", cursor: "pointer", color: "white", fontWeight: "bold" }}
+              >
                 {sortAsc ? "Asc" : "Desc"}
               </button>
-
               <div style={{ position: "relative" }}>
-                <button type="button" style={{ padding: "6px 10px", borderRadius: "6px", background: "#e5e7eb", border: "none", cursor: "pointer" }}
-                  onClick={() => setShowColDropdown(v => !v)}>Toggle Columns ▼</button>
+                <button
+                  type="button"
+                  style={{ padding: "6px 10px", borderRadius: "6px", background: "#e5e7eb", border: "none", cursor: "pointer" }}
+                  onClick={() => setShowColDropdown(v => !v)}
+                >Toggle Columns ▼</button>
                 {showColDropdown && (
                   <div style={{ position: "absolute", top: "110%", left: 0, background: "white", border: "1px solid #e5e7eb", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", zIndex: 10, padding: "10px", minWidth: "160px" }}>
-                    {visibleColumns && ["username","first_name","last_name","home_address","email_address","phone_number","truck_model","body_color","payload_capacity","towing_capacity","lifting_capacity","transmission","quantity","base_price","total_price","shipping_option","payment_method"].map(col => (
+                    {["username","first_name","last_name","home_address","email_address","phone_number","truck_model","body_color","payload_capacity","towing_capacity","lifting_capacity","transmission","quantity","base_price","total_price","shipping_option","payment_method"].map(col => (
                       <label key={col} style={{ display: "block", marginBottom: "6px" }}>
-                        <input type="checkbox" checked={visibleColumns.includes(col)} onChange={() => setVisibleColumns(prev => prev.includes(col) ? prev.filter(k => k !== col) : [...prev, col])} /> {col}
+                        <input
+                          type="checkbox"
+                          checked={visibleColumns.includes(col)}
+                          onChange={() =>
+                            setVisibleColumns(prev =>
+                              prev.includes(col)
+                                ? prev.filter(k => k !== col)
+                                : [...prev, col]
+                            )
+                          }
+                        /> {col}
                       </label>
                     ))}
                   </div>
@@ -498,28 +565,39 @@ export default function SalesDashboard() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={22}>Loading...</td></tr>
+                  <tr><td colSpan={visibleColumns.length + 6}>Loading...</td></tr>
                 ) : paginatedOrders.length > 0 ? (
-                  paginatedOrders.map((o) => (
+                  paginatedOrders.map(o => (
                     <tr key={o.orderid}>
                       <td>{o.orderid}</td>
                       <td>{o.order_timestamp ? new Date(o.order_timestamp).toLocaleString() : "-"}</td>
                       <td>{o.userid}</td>
                       {visibleColumns.map(col => (
                         <td key={col}>
-                          {(col === "base_price" || col === "total_price") ? `₱ ${parsePrice(o[col]).toLocaleString()}` : (o[col] ?? "-")}
+                          {(col === "base_price" || col === "total_price")
+                            ? `₱ ${parsePrice(o[col]).toLocaleString()}`
+                            : (o[col] ?? "-")}
                         </td>
                       ))}
                       <td><span className="status">{o.status}</span></td>
                       <td>
-                        <select value={o.status} onChange={(e) => handleStatusChange(o.orderid, e.target.value)}
-                          disabled={["completed", "canceled", "returned"].includes(normalizeStatus(o.status))}>
-                          {STATUS_OPTIONS.map(status => <option key={status} value={status}>{status}</option>)}
+                        <select
+                          value={o.status}
+                          onChange={e => handleStatusChange(o.orderid, e.target.value)}
+                          disabled={["completed", "canceled", "returned"].includes(normalizeStatus(o.status))}
+                        >
+                          {STATUS_OPTIONS.map(status => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
                         </select>
                       </td>
-                      <td>{(o.payment_status ? (o.payment_status.charAt(0).toUpperCase() + o.payment_status.slice(1)) : "Pending")}</td>
+                      <td>{(o.payment_status ? o.payment_status.charAt(0).toUpperCase() + o.payment_status.slice(1) : "Pending")}</td>
                       <td>
-                        <select value={normalizeStatus(o.payment_status || "pending")} onChange={(e) => handlePaymentStatusChange(o.orderid, e.target.value)} className="status-dropdown">
+                        <select
+                          value={normalizeStatus(o.payment_status || "pending")}
+                          onChange={e => handlePaymentStatusChange(o.orderid, e.target.value)}
+                          className="status-dropdown"
+                        >
                           {PAYMENT_STATUS_OPTIONS.map(opt => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                           ))}
@@ -528,25 +606,50 @@ export default function SalesDashboard() {
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan={22}>No orders found for this filter/month.</td></tr>
+                  <tr><td colSpan={visibleColumns.length + 6}>No orders found for this filter/month.</td></tr>
                 )}
               </tbody>
             </table>
+            
+           
           </div>
 
-          <div className="table-footer-fixed">
-            <button onClick={() => setOrdersPage(p => Math.max(0, p - 1))} disabled={ordersPage === 0} className="pagination-button">◀ Previous</button>
-            <div className="page-numbers">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i} onClick={() => setOrdersPage(i)} className={ordersPage === i ? 'page-number active' : 'page-number'} disabled={ordersPage === i}>{i + 1}</button>
-              ))}
+           <div className="table-footer">
+              <div className="pagination-controls">
+                <button
+                  onClick={() => setOrdersPage(ordersPage - 1)}
+                  disabled={ordersPage === 0}
+                  className="pagination-button"
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {ordersPage + 1} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setOrdersPage(ordersPage + 1)}
+                  disabled={ordersPage >= totalPages - 1 || totalPages === 0}
+                className="pagination-button">
+                  Next
+                </button>
+              </div>
+              
+              <button 
+                onClick={handleGlobalResend}
+                disabled={isResending}
+                className="resend-button"
+              >
+                {isResending ? (
+                  <BiLoaderAlt className="loading-spinner" />
+                ) : (
+                  `Resend All ${FILTERS[filterIdx].label} Slips`
+                )}
+              </button>
             </div>
-            <button onClick={() => setOrdersPage(p => Math.min(totalPages - 1, p + 1))} disabled={ordersPage >= totalPages - 1 || totalPages === 0} className="pagination-button">Next ▶</button>
-          </div>
         </section>
+        
       )}
 
-      {/* Sales Charts Section */}
       {(userLevel === "top" || userLevel === "middle" || userLevel === "owner") && (
         <section className="sales-section">
           <div className="sales-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -563,10 +666,16 @@ export default function SalesDashboard() {
           </div>
 
           <div className="charts-grid">
-            {['Elf','Forward','Giga'].map(series => {
-              const modelList = series === 'Elf' ? ELF_MODELS : series === 'Forward' ? FORWARD_MODELS : GIGA_MODELS;
+            {['Elf', 'Forward', 'Giga'].map(series => {
+              const modelList = series === 'Elf'
+                ? ELF_MODELS
+                : series === 'Forward'
+                  ? FORWARD_MODELS
+                  : GIGA_MODELS;
+
               const monthStart = new Date(month + "-01");
-              const monthEnd = new Date(monthStart); monthEnd.setMonth(monthEnd.getMonth() + 1);
+              const monthEnd = new Date(monthStart);
+              monthEnd.setMonth(monthEnd.getMonth() + 1);
 
               const filtered = allOrders.filter(o =>
                 normalizeStatus(o.status) === "completed" &&
@@ -579,7 +688,9 @@ export default function SalesDashboard() {
               );
 
               const pieData = modelList.map(model => {
-                const units = filtered.filter(o => o.truck_model === model).reduce((sum, o) => sum + (Number(o.quantity) || 1), 0);
+                const units = filtered
+                  .filter(o => o.truck_model === model)
+                  .reduce((sum, o) => sum + (Number(o.quantity) || 1), 0);
                 return { name: model, value: units };
               }).filter(d => d.value > 0);
 
@@ -602,75 +713,95 @@ export default function SalesDashboard() {
                 </div>
               );
             })}
-<div className="row-charts">
-            <div className="chart-box full-row">
-              <h3>Most Popular Sold Truck Models (Top 8)</h3>
-              {allOrders.length === 0 ? (
-                <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>No orders data available.</div>
-              ) : (() => {
-                const modelStats = {};
-                allOrders.filter(o => normalizeStatus(o.status) === "completed").forEach(o => {
-                  modelStats[o.truck_model] = (modelStats[o.truck_model] || 0) + (Number(o.quantity) || 1);
-                });
-                const topModels = Object.entries(modelStats).map(([name, value]) => ({ name, value }))
-                  .sort((a,b) => b.value - a.value).slice(0,8);
-                return topModels.length === 0 ? (
-                  <div style={{ color: '#F59E0B', padding: '2rem', textAlign: 'center' }}>No completed sales for any truck model.</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={topModels} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" fontSize={12} interval={0} angle={-20} textAnchor="end" height={70}/>
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="value" name="Units Sold" fill="#4F46E5" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                );
-              })()}
-            </div>
 
-            <div className="chart-box full-row">
-              <h3>Revenue Growth by Series (Last 12 Months)</h3>
-              {allOrders.length === 0 ? (
-                <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>No orders data available.</div>
-              ) : (() => {
-                const now = new Date();
-                const months = [];
-                for (let i = 11; i >= 0; i--) {
-                  const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                  months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
-                }
-                const seriesList = [
-                  { name: 'Elf', models: ELF_MODELS, color: '#4F46E5' },
-                  { name: 'Forward', models: FORWARD_MODELS, color: '#06B6D4' },
-                  { name: 'Giga', models: GIGA_MODELS, color: '#F59E0B' }
-                ];
-                const lineData = months.map(monthStr => {
-                  const monthStart = new Date(monthStr + '-01');
-                  const monthEnd = new Date(monthStart); monthEnd.setMonth(monthEnd.getMonth() + 1);
-                  const obj = { period: monthStr };
-                  seriesList.forEach(series => {
-                    obj[series.name] = allOrders.filter(o => normalizeStatus(o.status) === 'completed' && o.order_timestamp && new Date(o.order_timestamp) >= monthStart && new Date(o.order_timestamp) < monthEnd && series.models.includes(o.truck_model))
-                      .reduce((sum, o) => sum + (parsePrice(o.total_price)), 0);
+            <div className="row-charts">
+              <div className="chart-box full-row">
+                <h3>Most Popular Sold Truck Models (Top 8)</h3>
+                {allOrders.length === 0 ? (
+                  <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>No orders data available.</div>
+                ) : (() => {
+                  const modelStats = {};
+                  allOrders.filter(o => normalizeStatus(o.status) === "completed").forEach(o => {
+                    modelStats[o.truck_model] = (modelStats[o.truck_model] || 0) + (Number(o.quantity) || 1);
                   });
-                  return obj;
-                });
-                return (
-                  <ResponsiveContainer width="100%" height={260}>
-                    <LineChart data={lineData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis tickFormatter={v => `₱${(v/1000000).toFixed(1)}M`} />
-                      <Tooltip formatter={v => `₱${Number(v).toLocaleString()}`} />
-                      <Legend />
-                      {seriesList.map(series => <Line key={series.name} type="monotone" dataKey={series.name} name={series.name} stroke={series.color} />)}
-                    </LineChart>
-                  </ResponsiveContainer>
-                );
-              })()}
-            </div>
+                  const topModels = Object.entries(modelStats)
+                    .map(([name, value]) => ({ name, value }))
+                    .sort((a, b) => b.value - a.value)
+                    .slice(0, 8);
+                  if (topModels.length === 0) {
+                    return <div style={{ color: '#F59E0B', padding: '2rem', textAlign: 'center' }}>No completed sales for any truck model.</div>;
+                  }
+                  return (
+                    <ResponsiveContainer width="100%" height={260}>
+                      <BarChart data={topModels} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" fontSize={12} interval={0} angle={-20} textAnchor="end" height={70} />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="value" name="Units Sold" fill="#4F46E5" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  );
+                })()}
+              </div>
+
+              <div className="chart-box full-row">
+                <h3>Revenue Growth by Series (Last 12 Months)</h3>
+                {allOrders.length === 0 ? (
+                  <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>No orders data available.</div>
+                ) : (() => {
+                  const now = new Date();
+                  const months = [];
+                  for (let i = 11; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+                  }
+                  const seriesList = [
+                    { name: "Elf", models: ELF_MODELS, color: "#4F46E5" },
+                    { name: "Forward", models: FORWARD_MODELS, color: "#06B6D4" },
+                    { name: "Giga", models: GIGA_MODELS, color: "#F59E0B" },
+                  ];
+                  const lineData = months.map(monthStr => {
+                    const ms = new Date(monthStr + "-01");
+                    const me = new Date(ms);
+                    me.setMonth(me.getMonth() + 1);
+                    const obj = { period: monthStr };
+                    seriesList.forEach(series => {
+                      obj[series.name] = allOrders
+                        .filter(o =>
+                          normalizeStatus(o.status) === "completed"
+                          && o.order_timestamp
+                          && new Date(o.order_timestamp) >= ms
+                          && new Date(o.order_timestamp) < me
+                          && series.models.includes(o.truck_model)
+                        )
+                        .reduce((sum, o) => sum + parsePrice(o.total_price), 0);
+                    });
+                    return obj;
+                  });
+                  return (
+                    <ResponsiveContainer width="100%" height={260}>
+                      <LineChart data={lineData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="period" />
+                        <YAxis tickFormatter={v => `₱${(v / 1000000).toFixed(1)}M`} />
+                        <Tooltip formatter={v => `₱${Number(v).toLocaleString()}`} />
+                        <Legend />
+                        {seriesList.map(series => (
+                          <Line
+                            key={series.name}
+                            type="monotone"
+                            dataKey={series.name}
+                            name={series.name}
+                            stroke={series.color}
+                          />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         </section>
