@@ -60,6 +60,41 @@
     background: #283593;
 }
 
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.spinner {
+  border: 4px solid #ddd;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-form {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+
 @media (max-width: 500px) {
     .bank-pay-container {
         padding: 16px 8px;

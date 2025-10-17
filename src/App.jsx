@@ -25,6 +25,7 @@ import BankPay from "./static/components/Payment/BankPay.jsx";
 import PaySuccess from "./static/components/Payment/PaySuccess";
 import PayFailed from "./static/components/Payment/PayFailed";
 import { UserProvider, useUser } from "./static/Context/UserContext";
+import PaymentPending from "./static/components/Payment/PaymentPending.jsx";
 
 function AppContent() {
   const location = useLocation();
@@ -93,8 +94,9 @@ function AppContent() {
           <Route path="/OwnerDashboard" element={<OwnerDashboard />} />  
           <Route path="/OTPVerificationPage" element={<OTPVerificationPage />} />
           <Route path="/PaymentNav" element={<PaymentNav />} />
-          <Route path="/PaySuccess" element={<PaymentNav />} />
-          <Route path="/PayFailed" element={<PaymentNav />} />
+          <Route path="/PaySuccess" element={<PaySuccess />} />
+          <Route path="/PayFailed" element={<PayFailed />} />
+          <Route path="/PaymentPending" element={<PaymentPending />} />
           <Route path="/InstallmentPay" element={<InstallmentPay />} />
           <Route path="/BankPay" element={<BankPay />} />
         </Routes>

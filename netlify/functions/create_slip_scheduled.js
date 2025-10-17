@@ -32,7 +32,6 @@ export async function handler(event, context) {
       FROM public.orders o
       JOIN public.customers u ON o.userid = u.userid
       WHERE o.status IN ('Pending', 'Processing')
-      AND o.order_timestamp >= NOW() - INTERVAL '10 minutes'
       ORDER BY o.userid, o.orderid DESC
     `;
 

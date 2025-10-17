@@ -1,71 +1,98 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import "./BankPay.css";
 
-// --- Bank Payment Page ---
 export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () => {} }) {
   const [bank, setBank] = useState("BDO");
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate payment success/fail
-    if (cardNumber && cardHolder && expiry && cvv) {
-      onSuccess();
-    } else {
-      onFail();
-    }
+    setLoading(true);
+
+    // Simulate a short processing delay (e.g., API call)
+    setTimeout(() => {
+      if (cardNumber && cardHolder && expiry && cvv) {
+        onSuccess(Navigate("/PaySuccess"));
+      } else {
+        onFail(Navigate("/PayFailed"));
+      }
+      setLoading(false);
+    }, 2000);
   };
 
   return (
     <div className="bank-pay-container">
       <h2>BANK PAYMENT FORM</h2>
-      <form onSubmit={handleSubmit}>
+
+      <form onSubmit={handleSubmit} className={loading ? "loading-form" : ""}>
         <label>
           Select Banking Option:
-          <select value={bank} onChange={e => setBank(e.target.value)}>
-            {["BDO", "BPI", "ChinaBank", "RCBC", "UnionBank", "MetroBank", "PSBank", "MasterCard"].map(b => (
-              <option key={b} value={b}>{b}</option>
+          <select
+            value={bank}
+            onChange={(e) => setBank(e.target.value)}
+            disabled={loading}
+          >
+            {["BDO", "BPI", "ChinaBank", "RCBC", "UnionBank", "MetroBank", "PSBank", "MasterCard"].map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
             ))}
           </select>
         </label>
+
         <label>
           Debit Card Number:
           <input
             type="text"
             value={cardNumber}
-            onChange={e => {
-              // Allow only numbers and spaces, max 24 digits
+            onChange={(e) => {
               let val = e.target.value.replace(/[^\d ]/g, "");
-              val = val.replace(/(\d{24})\d*/, "$1"); // Limit to 24 digits
+              val = val.replace(/(\d{24})\d*/, "$1");
               setCardNumber(val);
             }}
             required
-            maxLength={29} // 24 digits + up to 5 spaces
+            maxLength={29}
             inputMode="numeric"
             pattern="[0-9 ]*"
             placeholder="Enter card number"
+            disabled={loading}
           />
         </label>
+
         <label>
           CardHolder Name:
-          <input type="text" value={cardHolder} onChange={e => setCardHolder(e.target.value)} required />
+          <input
+            type="text"
+            value={cardHolder}
+            onChange={(e) => setCardHolder(e.target.value)}
+            required
+            disabled={loading}
+          />
         </label>
+
         <label>
           Card Expiry Date:
-          <input type="month" value={expiry} onChange={e => setExpiry(e.target.value)} required />
+          <input
+            type="month"
+            value={expiry}
+            onChange={(e) => setExpiry(e.target.value)}
+            required
+            disabled={loading}
+          />
         </label>
+
         <label>
           CVV:
           <input
             type="text"
             value={cvv}
-            onChange={e => {
-              // Allow only numbers, max 4 digits
+            onChange={(e) => {
               let val = e.target.value.replace(/[^\d]/g, "");
               val = val.slice(0, 4);
               setCvv(val);
@@ -75,10 +102,21 @@ export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () 
             inputMode="numeric"
             pattern="[0-9]*"
             placeholder="CVV"
+            disabled={loading}
           />
         </label>
-        <button type="submit">Pay ₱{(amount || 0).toLocaleString()}</button>
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Processing..." : `Pay ₱${(amount || 0).toLocaleString()}`}
+        </button>
       </form>
+
+      {loading && (
+        <div className="loading-overlay">
+          <div className="spinner"></div>
+          <p>Processing your payment, please wait...</p>
+        </div>
+      )}
     </div>
   );
 }
