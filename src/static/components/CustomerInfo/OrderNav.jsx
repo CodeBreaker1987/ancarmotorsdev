@@ -27,12 +27,16 @@ const OrderNav = () => {
   const [loading, setLoading] = useState(true);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pendingTotal, setPendingTotal] = useState(0);
+  const ORDERS_PER_PAGE = 10;
 
   useEffect(() => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/.netlify/functions/get_orders", {
+      const res = await fetch(`/.netlify/functions/get_orders?userid=${user.userid}&page=${currentPage}&limit=${ORDERS_PER_PAGE}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.userid }), // pass userId
@@ -41,6 +45,8 @@ const OrderNav = () => {
       if (!res.ok) throw new Error("Failed to fetch orders");
       const data = await res.json();
       setOrders(data.orders || []);
+      setTotalPages(data.totalPages || 1);
+      setPendingTotal(data.pendingTotal || 0);
     } catch (err) {
       console.error(err);
       alert("Error fetching orders: " + err.message);
@@ -49,7 +55,7 @@ const OrderNav = () => {
     }
   };
   fetchOrders();
-}, [user.userid]);
+}, [user.userid, currentPage]);
 
   const filteredOrders = statusFilter === "active"
   ? orders.filter(order => order.status === "active" || order.status === "Pending")
@@ -79,6 +85,12 @@ const OrderNav = () => {
     } catch (err) {
       console.error(err);
       alert("Error cancelling order: " + err.message);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
     }
   };
 
@@ -179,6 +191,30 @@ const OrderNav = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination and Total Pending Amount */}
+      <div className="table-footer">
+  <div className="pagination">
+    <button
+      onClick={() => handlePageChange(currentPage - 1)}
+      disabled={currentPage === 1}
+      className="pagination-button"
+    >
+      Previous
+    </button>
+    <span className="page-info">Page {currentPage} of {totalPages}</span>
+    <button
+      onClick={() => handlePageChange(currentPage + 1)}
+      disabled={currentPage === totalPages}
+      className="pagination-button"
+    >
+      Next
+    </button>
+  </div>
+  <div className="pending-total">
+    <strong>Total Pending Amount: ₱{pendingTotal.toLocaleString()}</strong>
+  </div>
+</div>
 
       {/* Navigation Buttons */}
       <div className="nav-buttons">

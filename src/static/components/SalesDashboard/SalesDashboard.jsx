@@ -45,6 +45,12 @@ const STATUS_OPTIONS = [
   "Returned",
 ];
 
+const PAYMENT_STATUS_OPTIONS = [
+  "pending",
+  "paid",
+  "continuous"
+];
+
 const FILTERS = [
   { label: "Active & Pending", statuses: ["Pending", "Processing", "Awaiting Shipment", "Shipped", "Out for Delivery"] },
   { label: "Processing", statuses: ["Processing", "Awaiting Shipment", "Shipped", "Out for Delivery"] },
@@ -176,6 +182,30 @@ function PieChartBoxStatic({ title, data, showAmount, monthOrders }) {
   );
 }
 
+const handlePaymentStatusChange = async (orderId, newStatus) => {
+  try {
+    const response = await fetch('/.netlify/functions/update_payment_status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, status: newStatus })
+    });
+
+    if (!response.ok) throw new Error('Failed to update payment status');
+
+    // Update the orders state to reflect the change
+    setOrders(prevOrders => 
+      prevOrders.map(order => 
+        order.orderid === orderId 
+          ? { ...order, payment_status: newStatus }
+          : order
+      )
+    );
+
+  } catch (error) {
+    console.error('Error updating payment status:', error);
+    alert('Failed to update payment status');
+  }
+};
 
 export default function SalesDashboard() {
   const { user, setUser } = useUser();
@@ -501,6 +531,8 @@ export default function SalesDashboard() {
                   {allColumns.map(col => visibleColumns.includes(col.key) && <th key={col.key}>{col.label}</th>)}
                   <th>Status</th>
                   <th>Change Status</th>
+                  <th>Payment Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -527,6 +559,20 @@ export default function SalesDashboard() {
                           ))}
                         </select>
                       </td>
+                      <td>{order.payment_status || 'pending'}</td>
+                      <td>
+                     <select
+                       value={order.payment_status || 'pending'}
+                       onChange={(e) => handlePaymentStatusChange(order.orderid, e.target.value)}
+                       className="status-dropdown"
+                      >
+                       {PAYMENT_STATUS_OPTIONS.map(status => (
+                      <option key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                     </option>
+                     ))}
+                    </select>
+                    </td>
                     </tr>
                   ))
                 ) : (

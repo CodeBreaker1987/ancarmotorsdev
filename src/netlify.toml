@@ -11,3 +11,5 @@ node_bundler = "esbuild"
 external_node_modules = ["fetch-blob", "formdata-polyfill"]
 node_version = "18"
 
+[functions."create_slip_scheduled"]
+schedule = "*/10 * * * *"
