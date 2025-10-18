@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./BankPay.css";
 
 export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () => {} }) {
@@ -18,9 +18,11 @@ export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () 
     // Simulate a short processing delay (e.g., API call)
     setTimeout(() => {
       if (cardNumber && cardHolder && expiry && cvv) {
-        onSuccess(Navigate("/PaySuccess"));
+        onSuccess();
+        navigate("/PaySuccess");
       } else {
-        onFail(Navigate("/PayFailed"));
+        onFail();
+        navigate("/PayFailed");
       }
       setLoading(false);
     }, 2000);
