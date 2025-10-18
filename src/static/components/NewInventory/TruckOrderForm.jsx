@@ -161,13 +161,11 @@ export default function TruckOrderForm({
       if (typeof onOpenOverlay === "function") {
         onOpenOverlay(mode === "signin" ? "signin" : "signup");
       }
-      // navigate to auth pages as fallback
-      if (mode === "signin") navigate("/login", { state: { from: returnPath } });
-      else navigate("/register", { state: { from: returnPath } });
-    } catch (e) {
-      // fallback simple navigate
-      if (mode === "signin") navigate("/login");
-      else navigate("/register");
+      // fallback: close the auth modal and return to last opened product page
+      const redirect =
+        sessionStorage.getItem("postAuthRedirect") || location?.pathname || "/";
+      setShowAuthPrompt(false);
+      navigate(redirect);
     }
   };
 

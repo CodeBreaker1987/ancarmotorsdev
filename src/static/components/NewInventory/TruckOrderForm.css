@@ -481,11 +481,6 @@
   position: relative;
 }
 
-/* keep your existing box classes but ensure they inherit modal-content */
-.truck-order-confirmation-box.modal-content,
-.auth-prompt-box.modal-content {
-  /* optional overrides if needed */
-}
 
 /* close button position */
 .auth-prompt-close,
