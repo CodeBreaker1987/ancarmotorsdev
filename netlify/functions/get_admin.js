@@ -1,6 +1,5 @@
-/m // netlify/functions/get_admin.js
-import pkg from "pg";
-const { Pool } = pkg;
+// netlify/functions/get_admin.js
+const { Pool } = require('pg');  // Change to CommonJS import
 
 const pool = new Pool({
   host: process.env.NEON_HOST,
@@ -11,9 +10,26 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-export const handler = async (event) => {
+// Change to CommonJS export
+exports.handler = async (event) => {
+  // Add CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+  };
+
+  // Handle preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers };
+  }
+
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
+    return { 
+      statusCode: 405, 
+      headers,
+      body: "Method Not Allowed" 
+    };
   }
 
   try {
@@ -30,18 +46,21 @@ export const handler = async (event) => {
     if (result.rows.length === 0) {
       return {
         statusCode: 401,
+        headers,
         body: JSON.stringify({ success: false, message: "Invalid credentials" }),
       };
     }
 
     return {
       statusCode: 200,
+      headers,
       body: JSON.stringify({ success: true, data: result.rows[0] }),
     };
   } catch (err) {
     console.error("❌ Admin login error:", err);
     return {
       statusCode: 500,
+      headers,
       body: JSON.stringify({ success: false, message: "Server error" }),
     };
   }
