@@ -1,6 +1,6 @@
 // src/components/TruckOrderForm.jsx
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "../../Context/UserContext.jsx";
 import "./TruckOrderForm.css";
 
@@ -28,6 +28,7 @@ export default function TruckOrderForm({
 }) {
   const { user } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [color, setColor] = useState("");
   const [payload, setPayload] = useState("");
@@ -131,6 +132,33 @@ export default function TruckOrderForm({
 
     // Navigate to OTP page instead of PaymentNav
     navigate("/OtpVerificationPage");
+  };
+
+  // new helper: open signin/signup and remember return path
+  const openAuthAndRemember = (mode) => {
+    try {
+      // remember current product page so auth flow can return here
+      const returnPath = location?.pathname || window.location.pathname;
+      sessionStorage.setItem("postAuthRedirect", returnPath);
+      // also store minimal product identifier so UI can restore if needed
+      if (truck?.id || truck?.orderableId || truck?.model) {
+        sessionStorage.setItem(
+          "postAuthProduct",
+          JSON.stringify({ id: truck.id, model: truck.model || truck.description })
+        );
+      }
+      // prefer provided overlay handler if available (keeps existing navbar behavior)
+      if (typeof onOpenOverlay === "function") {
+        onOpenOverlay(mode === "signin" ? "signin" : "signup");
+      }
+      // navigate to auth pages as fallback
+      if (mode === "signin") navigate("/login", { state: { from: returnPath } });
+      else navigate("/register", { state: { from: returnPath } });
+    } catch (e) {
+      // fallback simple navigate
+      if (mode === "signin") navigate("/login");
+      else navigate("/register");
+    }
   };
 
   if (!truck) return <p>Please select a truck from the inventory to order.</p>;
@@ -384,6 +412,43 @@ export default function TruckOrderForm({
                 disabled={sending}
               >
                 Place Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === Auth prompt modal shown when user clicks Checkout while not logged in === */}
+      {showAuthPrompt && (
+        <div className="auth-prompt-modal">
+          <div className="auth-prompt-box">
+            <button
+              type="button"
+              className="auth-prompt-close"
+              onClick={() => setShowAuthPrompt(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            <h2>Interested in this Product?</h2>
+            <p>Sign in or Sign Up to place an order.</p>
+
+            <div className="auth-actions">
+              <button
+                type="button"
+                className="auth-signin-button"
+                onClick={() => openAuthAndRemember("signin")}
+              >
+                Sign In
+              </button>
+
+              <button
+                type="button"
+                className="auth-signup-button"
+                onClick={() => openAuthAndRemember("signup")}
+              >
+                Sign Up
               </button>
             </div>
           </div>
