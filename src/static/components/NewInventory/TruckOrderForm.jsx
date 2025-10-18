@@ -45,6 +45,16 @@ export default function TruckOrderForm({
 
   const formRef = useRef();
 
+  // lock background scroll when any modal is open
+  useEffect(() => {
+    if (showConfirmation || showAuthPrompt) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+    return () => document.body.classList.remove("modal-open");
+  }, [showConfirmation, showAuthPrompt]);
+
   useEffect(() => {
     if (truck) {
       setColor(truck.specifications.colors?.[0] || "");
@@ -362,8 +372,12 @@ export default function TruckOrderForm({
 
       {/* Confirmation modal */}
       {showConfirmation && (
-        <div className="truck-order-confirmation">
-          <div className="truck-order-confirmation-box">
+        <div
+          className="modal-overlay truck-order-confirmation"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="truck-order-confirmation-box modal-content">
             <button
               type="button"
               className="truck-order-popup-cancel"
@@ -420,8 +434,8 @@ export default function TruckOrderForm({
 
       {/* === Auth prompt modal shown when user clicks Checkout while not logged in === */}
       {showAuthPrompt && (
-        <div className="auth-prompt-modal">
-          <div className="auth-prompt-box">
+        <div className="modal-overlay auth-prompt-modal" role="dialog" aria-modal="true">
+          <div className="auth-prompt-box modal-content">
             <button
               type="button"
               className="auth-prompt-close"
