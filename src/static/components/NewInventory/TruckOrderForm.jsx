@@ -167,6 +167,9 @@ export default function TruckOrderForm({
       setShowAuthPrompt(false);
       navigate(redirect);
     }
+    catch (error) {
+    console.error("Error opening auth modal:", error);
+  }
   };
 
   if (!truck) return <p>Please select a truck from the inventory to order.</p>;
