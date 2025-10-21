@@ -111,6 +111,24 @@ Transaction Slip: ${slipHeader}
 
       // Send email: include transaction_number as a separate template field and the orders list
       try {
+        // add: provide public logo URL and try to generate base64 fallback
+        const logoUrl = process.env.SLIP_LOGO_URL || null;
+        let logoBase64 = null;
+        if (logoUrl) {
+          try {
+            const res = await fetch(logoUrl);
+            if (res.ok) {
+              const arrayBuffer = await res.arrayBuffer();
+              const contentType = res.headers.get("content-type") || "image/png";
+              logoBase64 = `data:${contentType};base64,${Buffer.from(arrayBuffer).toString("base64")}`;
+            } else {
+              console.warn(`Could not fetch logo URL (${logoUrl}): HTTP ${res.status}`);
+            }
+          } catch (fetchErr) {
+            console.warn("Failed to fetch/convert logo to base64:", fetchErr);
+          }
+        }
+
         await emailjs.send("service_y38zirj", "template_68j0zpr", {
           to_name: userData.name,
           to_email: userData.email,
@@ -122,6 +140,9 @@ Please complete your payment within 48 hours to process your order.
 Accepted methods: Bank Transfer, Cash Payment, Check, or Installment.
 Contact our support if you need assistance.
           `.trim(),
+          // image fields available to the template:
+          logo_url: logoUrl,        // public URL (recommended)
+          logo_base64: logoBase64,  // data URI fallback (optional)
         });
       } catch (sendErr) {
         console.error(`❌ Failed to send slip email to user ${userId} (${userData.email}):`, sendErr);

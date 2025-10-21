@@ -26,7 +26,12 @@ export default function InstallmentPay({ amount, onSuccess, onFail }) {
     sessionStorage.getItem("currentSlipNumber") ||
     null;
 
-  // Calculations
+  // Use baseAmount derived from session orders when present, otherwise use prop amount
+  const baseAmount = orders.length > 0
+    ? orders.reduce((s, o) => s + (Number(o.totalPrice || o.total_price) || 0), 0)
+    : Number(amount || 0);
+
+  // Calculations (use baseAmount)
   const rate = 0.015;
   const periodMap = {
     "6 Months": 6,
@@ -36,8 +41,8 @@ export default function InstallmentPay({ amount, onSuccess, onFail }) {
     "5 Years": 60,
   };
   const installments = periodMap[period];
-  const totalInterest = amount * rate * installments;
-  const totalAmount = amount + totalInterest;
+  const totalInterest = baseAmount * rate * installments;
+  const totalAmount = baseAmount + totalInterest;
   const installmentAmount = totalAmount / installments;
   const firstPaymentDate = (() => {
     const d = new Date();
@@ -184,7 +189,7 @@ export default function InstallmentPay({ amount, onSuccess, onFail }) {
 
           <div className="orders-footer" style={{ marginTop: 12 }}>
             <strong>Grand Total:</strong>
-            <span>₱{(orders.reduce((s,o)=>s+(Number(o.totalPrice||o.total_price)||0),0) || totalAmount).toLocaleString()}</span>
+            <span>₱{totalAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
           </div>
         </div>
       </div>

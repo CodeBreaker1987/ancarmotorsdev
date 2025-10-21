@@ -24,7 +24,8 @@ export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () 
     sessionStorage.getItem("currentSlipNumber") ||
     null;
 
-  const totalAmount = orders.reduce((s, o) => s + (Number(o.totalPrice || o.total_price) || 0), 0);
+  // compute grand total: prefer orders sum, otherwise fallback to prop amount
+  const grandTotal = orders.reduce((s, o) => s + (Number(o.totalPrice || o.total_price) || 0), 0) || Number(amount || 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -124,7 +125,7 @@ export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () 
         </label>
 
         <button type="submit" disabled={loading}>
-          {loading ? "Processing..." : `Pay ₱${(amount || 0).toLocaleString()}`}
+          {loading ? "Processing..." : `Pay ₱${grandTotal.toLocaleString()}`}
         </button>
       </form>
 
@@ -164,7 +165,7 @@ export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () 
 
           <div className="orders-footer" style={{ marginTop: 12 }}>
             <strong>Grand Total:</strong>
-            <span>₱{(totalAmount || amount || 0).toLocaleString()}</span>
+            <span>₱{grandTotal.toLocaleString()}</span>
           </div>
         </div>
       </div>

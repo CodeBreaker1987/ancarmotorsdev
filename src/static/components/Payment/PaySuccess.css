@@ -10,6 +10,8 @@
     gap: 16px;
     align-items: stretch;
     color: #222;
+    margin-top: 200px;
+
 }
 
 .payment-success-container h2 {
@@ -32,6 +34,18 @@
     gap: 12px;
     justify-content: center;
     margin-top: 6px;
+}
+
+.payment-success-actions button {
+    padding: 10px 22px;
+    border: none;
+    border-radius: 8px;
+    background: #27ae60;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
 @media (max-width: 500px) {
