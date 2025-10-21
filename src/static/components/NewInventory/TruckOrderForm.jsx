@@ -45,6 +45,86 @@ export default function TruckOrderForm({
 
   const formRef = useRef();
 
+  // --- Slip generation helpers ---
+  const generateSlipNumber = () => {
+    // SLIP-2025-0001 style: random 4 digits for now
+    const n = Math.floor(Math.random() * 10000);
+    return `SLIP-2025-${String(n).padStart(4, "0")}`;
+  };
+
+  const ensureSlip = () => {
+    let slip = sessionStorage.getItem("currentSlipNumber");
+    if (!slip) {
+      slip = generateSlipNumber();
+      sessionStorage.setItem("currentSlipNumber", slip);
+    }
+    return slip;
+  };
+
+  const addOrderToSession = (orderPayload) => {
+    const slip = ensureSlip();
+
+    const sanitizeTruck = (t) => {
+      if (!t) return null;
+      return {
+        id: t.id || t.orderableId || null,
+        model: t.model || t.description || null,
+        thumbnail: t.thumbnail || null,
+        basePrice: t.basePrice || t.base_price || 0,
+      };
+    };
+
+    const sanitizeUser = (u) => {
+      if (!u) return null;
+      return {
+        userid: u.userid || u.id || null,
+        username: u.username || `${u.first_name || ""} ${u.last_name || ""}`.trim() || null,
+        first_name: u.first_name || null,
+        last_name: u.last_name || null,
+        email_address: u.email_address || null,
+        phone_number: u.phone_number || null,
+        home_address: u.home_address || null,
+      };
+    };
+
+    try {
+      const multiRaw = sessionStorage.getItem("multiOrders") || "[]";
+      const multi = JSON.parse(multiRaw);
+
+      const orderWithSlip = {
+        ...orderPayload,
+        truck: sanitizeTruck(orderPayload.truck),
+        user: sanitizeUser(orderPayload.user),
+        transaction_number: slip,
+      };
+
+      multi.push(orderWithSlip);
+      sessionStorage.setItem("multiOrders", JSON.stringify(multi));
+      return { slip, multi };
+    } catch (err) {
+      console.error("Failed to save order to sessionStorage:", err);
+      // fallback: try storing a minimal order entry
+      try {
+        const fallback = [
+          {
+            user: sanitizeUser(orderPayload.user),
+            truck: {
+              model: orderPayload.truck?.model || orderPayload.truck?.description || null,
+            },
+            quantity: orderPayload.quantity || 1,
+            totalPrice: orderPayload.totalPrice || orderPayload.total_price || 0,
+            transaction_number: slip,
+          },
+        ];
+        sessionStorage.setItem("multiOrders", JSON.stringify(fallback));
+        return { slip, multi: fallback };
+      } catch (e) {
+        console.error("Fallback save failed:", e);
+        return { slip, multi: [] };
+      }
+    }
+  };
+
   // lock background scroll when any modal is open
   useEffect(() => {
     if (showConfirmation || showAuthPrompt) {
@@ -134,13 +214,60 @@ export default function TruckOrderForm({
       paymentMethod,
     };
 
-    // Store pending order temporarily for OTP verification
+    // Save current order into multiOrders and go to OTP (old behavior)
+    // Updated flow: store to session multiOrders then redirect to OTP only when user clicks Finalize Order
+    // Here we'll save as pending single order for compatibility — but primary flow uses addOrderToSession/finalize below
     sessionStorage.setItem("pendingOrder", JSON.stringify(orderDetails));
 
     setSending(true);
     setShowConfirmation(false);
 
-    // Navigate to OTP page instead of PaymentNav
+    // keep backward compatibility: do not navigate here by default
+    // navigate("/OtpVerificationPage");
+  };
+
+  const handlePlaceAnotherOrder = () => {
+    const orderDetails = {
+      user,
+      truck,
+      color,
+      payload,
+      lifting,
+      towing,
+      transmission,
+      quantity,
+      unitPrice,
+      totalPrice,
+      shipping,
+      shippingDate,
+      paymentMethod,
+    };
+    addOrderToSession(orderDetails);
+    // redirect user back to inventory to pick another truck
+    setShowConfirmation(false);
+    navigate("/InventoryNav");
+  };
+
+  const handleFinalizeOrder = () => {
+    const orderDetails = {
+      user,
+      truck,
+      color,
+      payload,
+      lifting,
+      towing,
+      transmission,
+      quantity,
+      unitPrice,
+      totalPrice,
+      shipping,
+      shippingDate,
+      paymentMethod,
+    };
+    addOrderToSession(orderDetails);
+    setShowConfirmation(false);
+    // set a single pendingOrder for any legacy code (PaymentNav has been updated to read multiOrders)
+    sessionStorage.setItem("pendingOrder", JSON.stringify(orderDetails));
     navigate("/OtpVerificationPage");
   };
 
@@ -373,11 +500,13 @@ export default function TruckOrderForm({
 
       {/* Confirmation modal */}
       {showConfirmation && (
+        
         <div
           className="modal-overlay truck-order-confirmation"
           role="dialog"
           aria-modal="true"
         >
+          
           <div className="truck-order-confirmation-box modal-content">
             <button
               type="button"
@@ -420,13 +549,22 @@ export default function TruckOrderForm({
               >
                 Change Order
               </button>
+
+              <button
+                type="button"
+                className="Place-new-order-button"
+                onClick={handlePlaceAnotherOrder}
+              >
+                Place Another Order
+              </button>
+
               <button
                 type="button"
                 className="Place-order-button"
-                onClick={handlePlaceOrder}
+                onClick={handleFinalizeOrder}
                 disabled={sending}
               >
-                Place Order
+                Finalize Order
               </button>
             </div>
           </div>

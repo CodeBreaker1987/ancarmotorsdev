@@ -11,28 +11,56 @@ export default function PaymentNav() {
   const location = useLocation();
 
   const locationState = location.state || {};
+  // Read multiOrders (array) and slip from sessionStorage
+  const multiOrders = JSON.parse(sessionStorage.getItem("multiOrders") || "[]");
+  const transactionNumber = sessionStorage.getItem("currentSlipNumber") || null;
   const pendingOrder = JSON.parse(sessionStorage.getItem("pendingOrder") || "{}");
 
-  // --- Extract order info ---
-  const {
-    paymentMethod = pendingOrder.paymentMethod,
-    truck = pendingOrder.truck,
-    user = pendingOrder.user,
-    totalPrice = pendingOrder.totalPrice,
-    color = pendingOrder.color,
-    payload = pendingOrder.payload,
-    lifting = pendingOrder.lifting,
-    towing = pendingOrder.towing,
-    transmission = pendingOrder.transmission,
-    quantity = pendingOrder.quantity,
-    unitPrice = pendingOrder.unitPrice,
-    shipping = pendingOrder.shipping,
-    shippingDate = pendingOrder.shippingDate,
-  } = locationState;
+  // determine primary paymentMethod: prefer location state -> pendingOrder -> first multiOrder
+  const paymentMethod =
+    locationState.paymentMethod ||
+    pendingOrder.paymentMethod ||
+    (multiOrders[0] && multiOrders[0].paymentMethod) ||
+    "Bank Transfer";
+
+  // pick representative truck/user/totalPrice for UI components that expect single values
+  const truck =
+    locationState.truck || pendingOrder.truck || (multiOrders[0] && multiOrders[0].truck) || null;
+  const user =
+    locationState.user || pendingOrder.user || (multiOrders[0] && multiOrders[0].user) || null;
+  const totalPrice =
+    locationState.totalPrice ||
+    pendingOrder.totalPrice ||
+    multiOrders.reduce((s, o) => s + (o.totalPrice || 0), 0) ||
+    0;
+  const color =
+    locationState.color || pendingOrder.color || (multiOrders[0] && multiOrders[0].color) || null;
+  const payload =
+    locationState.payload || pendingOrder.payload || (multiOrders[0] && multiOrders[0].payload) || null;
+  const lifting =
+    locationState.lifting || pendingOrder.lifting || (multiOrders[0] && multiOrders[0].lifting) || null;
+  const towing =
+    locationState.towing || pendingOrder.towing || (multiOrders[0] && multiOrders[0].towing) || null;
+  const transmission =
+    locationState.transmission ||
+    pendingOrder.transmission ||
+    (multiOrders[0] && multiOrders[0].transmission) ||
+    null;
+  const quantity =
+    locationState.quantity || pendingOrder.quantity || (multiOrders[0] && multiOrders[0].quantity) || 1;
+  const unitPrice =
+    locationState.unitPrice || pendingOrder.unitPrice || (multiOrders[0] && multiOrders[0].unitPrice) || 0;
+  const shipping =
+    locationState.shipping || pendingOrder.shipping || (multiOrders[0] && multiOrders[0].shipping) || null;
+  const shippingDate =
+    locationState.shippingDate ||
+    pendingOrder.shippingDate ||
+    (multiOrders[0] && multiOrders[0].shippingDate) ||
+    null;
 
   const [slipSent, setSlipSent] = useState(false);
 
-  // --- Determine payment status based on method ---
+  // pay_status logic remains similar; when there are multiple orders across methods this is a simplification
   const pay_status =
     paymentMethod === "Bank Transfer"
       ? "paid"
@@ -40,58 +68,74 @@ export default function PaymentNav() {
       ? "continuous"
       : "pending";
 
-  // --- Create order ---
+  // --- Create order(s) ---
   const createOrder = async () => {
-    if (!user || !truck) {
-      throw new Error("Missing required user or truck data");
+    // choose orders array: multiOrders if present, otherwise use single order from location/pending
+    const ordersToCreate = multiOrders.length > 0 ? multiOrders : [pendingOrder];
+    if (!ordersToCreate || ordersToCreate.length === 0) {
+      throw new Error("No orders to create");
     }
 
-    const orderData = {
-      userId: user?.userid,
-      username: user?.username,
-      truck_model: truck?.model || truck?.description || "Unknown Model",
-      base_price: truck?.basePrice || 0,
-      body_color: color,
-      payload_capacity: payload,
-      lifting_capacity: lifting,
-      towing_capacity: towing,
-      transmission,
-      unit_price: unitPrice,
-      quantity,
-      total_price: totalPrice,
-      shipping_option: shipping,
-      payment_method: paymentMethod,
-      payment_status: pay_status,
-      status: "Pending",
-    };
-
     try {
-      console.log("🧾 Sending orderData:", JSON.stringify(orderData, null, 2));
-      const response = await fetch("/.netlify/functions/add_order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData),
-      });
+      const createdOrderIds = [];
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Failed to create order: ${text}`);
+      for (const o of ordersToCreate) {
+        if (!o.user || !o.truck) {
+          console.warn("Skipping invalid order missing user/truck:", o);
+          continue;
+        }
+
+        const orderData = {
+          userId: o.user?.userid,
+          username: o.user?.username,
+          truck_model: o.truck?.model || o.truck?.description || "Unknown Model",
+          base_price: o.truck?.basePrice || o.base_price || 0,
+          body_color: o.color,
+          payload_capacity: o.payload,
+          lifting_capacity: o.lifting,
+          towing_capacity: o.towing,
+          transmission: o.transmission,
+          unit_price: o.unitPrice,
+          quantity: o.quantity,
+          total_price: o.totalPrice,
+          shipping_option: o.shipping,
+          shippingDate: o.shippingDate,
+          payment_method: o.paymentMethod,
+          payment_status: pay_status,
+          status: "Pending",
+          transaction_number: transactionNumber,
+        };
+
+        console.log("🧾 Sending orderData:", JSON.stringify(orderData, null, 2));
+        const response = await fetch("/.netlify/functions/add_order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderData),
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Failed to create order: ${text}`);
+        }
+
+        const json = await response.json();
+        createdOrderIds.push(json?.orderId || null);
       }
 
-      return await response.json();
+      return createdOrderIds;
     } catch (error) {
-      console.error("❌ Error creating order:", error);
+      console.error("❌ Error creating orders:", error);
       throw error;
     }
   };
 
-  // --- Send slip ---
+  // --- Send slip (now includes transaction number) ---
   const sendSlip = async (orderUserId) => {
     try {
       const response = await fetch("/.netlify/functions/create_slip_scheduled", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: orderUserId || user?.userid }),
+        body: JSON.stringify({ userId: orderUserId || user?.userid, transaction_number: transactionNumber }),
       });
 
       if (!response.ok) throw new Error("Failed to schedule slip sending");
@@ -106,17 +150,22 @@ export default function PaymentNav() {
   // --- Handle successful payment ---
   const handleSuccess = async () => {
     try {
-      const orderResult = await createOrder();
+      const orderIds = await createOrder();
       await sendSlip(user?.userid);
+
+      // clear multiOrders and slip after successful creation
+      sessionStorage.removeItem("multiOrders");
+      sessionStorage.removeItem("currentSlipNumber");
       sessionStorage.removeItem("pendingOrder");
 
       console.log("✅ Payment success — redirecting to PaySuccess");
 
       navigate("/PaySuccess", {
         state: {
-          truck,
+          orders: multiOrders.length > 0 ? multiOrders : [pendingOrder],
           fromCheckout: true,
-          orderId: orderResult.orderId,
+          orderIds,
+          transaction_number: transactionNumber,
         },
       });
     } catch (err) {
@@ -128,23 +177,30 @@ export default function PaymentNav() {
   // --- Handle failed payment ---
   const handleFail = () => {
     console.warn("⚠️ Payment failed — redirecting to PayFailed");
-    navigate("/PayFailed");
+    navigate("/PayFailed", {
+      state: { transaction_number: transactionNumber, orders: multiOrders.length > 0 ? multiOrders : [pendingOrder] },
+    });
   };
 
   // --- Handle Cash / Check payments (no online payment) ---
   const handlePendingPayment = async () => {
     try {
-      const orderResult = await createOrder();
+      const orderIds = await createOrder();
       await sendSlip(user?.userid);
+
+      // clear after scheduling
+      sessionStorage.removeItem("multiOrders");
+      sessionStorage.removeItem("currentSlipNumber");
       sessionStorage.removeItem("pendingOrder");
 
       console.log("💰 Pending payment — redirecting to PaymentPending");
 
       navigate("/PaymentPending", {
         state: {
-          truck,
+          orders: multiOrders.length > 0 ? multiOrders : [pendingOrder],
           fromCheckout: true,
-          orderId: orderResult.orderId,
+          orderIds,
+          transaction_number: transactionNumber,
         },
       });
     } catch (err) {
@@ -162,6 +218,8 @@ export default function PaymentNav() {
         onFail={handleFail}
         user={user}
         truck={truck}
+        transaction_number={transactionNumber}
+        orders={multiOrders}
       />
     );
   }
@@ -174,6 +232,8 @@ export default function PaymentNav() {
         onFail={handleFail}
         user={user}
         truck={truck}
+        transaction_number={transactionNumber}
+        orders={multiOrders}
       />
     );
   }
@@ -188,6 +248,8 @@ export default function PaymentNav() {
       <PaymentPending
         onRedirect={() => navigate("/InventoryNav")}
         onCancel={() => navigate("/")}
+        transaction_number={transactionNumber}
+        orders={multiOrders}
       />
     );
   }

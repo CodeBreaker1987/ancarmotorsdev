@@ -21,7 +21,7 @@ export async function handler(event) {
 
   try {
     const data = JSON.parse(event.body || "{}");
-console.log("🛰️ Received order data:", JSON.stringify(data, null, 2));
+    console.log("🛰️ Received order data:", JSON.stringify(data, null, 2));
     const {
       userId,
       username,
@@ -39,6 +39,7 @@ console.log("🛰️ Received order data:", JSON.stringify(data, null, 2));
       payment_method,
       status,
       payment_status,
+      transaction_number, // new
     } = data;
 
     // 🧩 Validate required fields
@@ -49,7 +50,7 @@ console.log("🛰️ Received order data:", JSON.stringify(data, null, 2));
       };
     }
 
-    // 🧾 Prepare SQL Insert Statement (no timestamp field included)
+    // 🧾 Prepare SQL Insert Statement (include transaction_number)
     const insertQuery = `
       INSERT INTO public.orders (
         userid,
@@ -66,9 +67,10 @@ console.log("🛰️ Received order data:", JSON.stringify(data, null, 2));
         shipping_option,
         payment_method,
         status,
-        payment_status
+        payment_status,
+        transaction_number
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16
       )
       RETURNING orderid;
     `;
@@ -89,6 +91,7 @@ console.log("🛰️ Received order data:", JSON.stringify(data, null, 2));
       payment_method || "Bank",
       status || "Pending",
       payment_status || "pending",
+      transaction_number || null,
     ];
 
     const result = await pool.query(insertQuery, values);

@@ -12,6 +12,19 @@ export default function InstallmentPay({ amount, onSuccess, onFail }) {
   const [income, setIncome] = useState("Business");
   const [period, setPeriod] = useState("6 Months");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // slip & orders summary (reads from location.state or sessionStorage)
+  const loc = location.state || {};
+  const ordersFromState = Array.isArray(loc.orders) ? loc.orders : [];
+  const ordersFromSession = JSON.parse(sessionStorage.getItem("multiOrders") || "[]") || [];
+  const orders = ordersFromState.length > 0 ? ordersFromState : ordersFromSession;
+
+  const transaction_number =
+    loc.transaction_number ||
+    loc.transactionNumber ||
+    sessionStorage.getItem("currentSlipNumber") ||
+    null;
 
   // Calculations
   const rate = 0.015;
@@ -36,8 +49,10 @@ export default function InstallmentPay({ amount, onSuccess, onFail }) {
     e.preventDefault();
     if (payType && cardNumber && cardHolder && expiry && cvv) {
       onSuccess();
+      navigate("/PaySuccess", { state: { orders, transaction_number } });
     } else {
       onFail();
+      navigate("/PayFailed", { state: { orders, transaction_number } });
     }
   };
 
@@ -132,6 +147,47 @@ export default function InstallmentPay({ amount, onSuccess, onFail }) {
         </div>
         <button type="submit">Pay ₱{installmentAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} / installment</button>
       </form>
+
+      {/* Slip summary positioned under the main container content */}
+      <div className="slip-summary" style={{ marginTop: 18 }}>
+        {transaction_number && (
+          <div className="slip-header">
+            <strong>Transaction Slip:</strong>
+            <span className="slip-number" style={{ marginLeft: 8 }}>{transaction_number}</span>
+          </div>
+        )}
+
+        <div className="orders-summary">
+          <h3>Order Summary ({orders.length})</h3>
+          {orders.length === 0 ? (
+            <p className="no-orders">No order details available.</p>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {orders.map((o, i) => (
+                <li key={i} className="order-item" style={{ marginBottom: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                    <div>
+                      <strong>{(o.truck && (o.truck.model || o.truck.description)) || o.truck_model || `Order ${i + 1}`}</strong>
+                      <div className="order-meta" style={{ marginTop: 6 }}>
+                        <span>Qty: {o.quantity || 1}</span>
+                        <span style={{ marginLeft: 8 }}>Unit: ₱{Number(o.unitPrice || o.base_price || 0).toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <div style={{ fontWeight: 700, alignSelf: "center" }}>
+                      ₱{Number(o.totalPrice || o.total_price || 0).toLocaleString()}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="orders-footer" style={{ marginTop: 12 }}>
+            <strong>Grand Total:</strong>
+            <span>₱{(orders.reduce((s,o)=>s+(Number(o.totalPrice||o.total_price)||0),0) || totalAmount).toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

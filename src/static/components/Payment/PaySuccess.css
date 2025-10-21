@@ -1,45 +1,37 @@
 .payment-success-container {
-    max-width: 400px;
-    margin: 120px auto;
-    padding: 32px 24px;
+    max-width: 720px;
+    margin: 48px auto;
+    padding: 28px;
     background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    box-shadow: 0 6px 30px rgba(0,0,0,0.06);
     display: flex;
     flex-direction: column;
-    align-items: center;
+    gap: 16px;
+    align-items: stretch;
+    color: #222;
 }
 
 .payment-success-container h2 {
-    font-size: 2rem;
-    font-weight: 600;
+    font-size: 1.8rem;
+    font-weight: 700;
     color: #27ae60;
-    margin-bottom: 16px;
+    margin: 0;
     text-align: center;
 }
 
 .payment-success-container p {
-    font-size: 1.1rem;
-    color: #555;
-    margin-bottom: 12px;
+    font-size: 1rem;
+    color: #444;
+    margin: 0;
     text-align: center;
 }
 
-.payment-success-container button {
-    padding: 10px 28px;
-    border: none;
-    border-radius: 8px;
-    background: #27ae60;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-    margin: 8px 0;
-}
-
-.payment-success-container button:hover {
-    background: #219150;
+.payment-success-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 6px;
 }
 
 @media (max-width: 500px) {
@@ -48,5 +40,114 @@
     }
     .payment-success-container h2 {
         font-size: 1.4rem;
+    }
+}
+
+/* Slip summary area */
+.slip-summary {
+    margin-top: 8px;
+    padding: 18px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #fbfbfb, #ffffff);
+    border: 1px solid rgba(0,0,0,0.04);
+}
+
+/* header with slip number */
+.slip-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    justify-content: center;
+    font-size: 1rem;
+}
+.slip-number {
+    display: inline-block;
+    padding: 6px 10px;
+    background: #f0f7ef;
+    border-radius: 6px;
+    color: #1e7a3a;
+    font-weight: 600;
+    border: 1px solid rgba(30,122,58,0.08);
+}
+
+/* orders list */
+.orders-summary h3 {
+    margin: 6px 0 10px 0;
+    font-size: 1.05rem;
+    text-align: left;
+    color: #333;
+}
+
+.orders-summary ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.order-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.03);
+}
+
+.order-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.order-title {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.order-truck {
+    margin-left: 6px;
+    color: #333;
+    font-weight: 600;
+}
+
+.order-meta {
+    display: flex;
+    gap: 12px;
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.order-id {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 6px;
+}
+
+.orders-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(0,0,0,0.04);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+/* responsive */
+@media (max-width: 600px) {
+    .payment-success-container {
+        padding: 18px;
+    }
+    .order-meta {
+        flex-direction: column;
+        align-items: flex-end;
     }
 }

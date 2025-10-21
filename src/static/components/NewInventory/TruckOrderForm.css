@@ -163,7 +163,7 @@
   transition: background-color 0.3s;
 }
 
-.order-actions .Change-order-button, .Place-order-button {
+.order-actions .Change-order-button, .Place-order-button, .Place-new-order-button {
   background-color: #073996;
   color: white;
   font-weight: bold;
@@ -235,7 +235,6 @@
   margin-right: 6px;
 }
 
-
 .truck-order-popup-cancel {
   position: absolute;
   top: 18px;
@@ -255,6 +254,7 @@
   ;
 }
 
+
 .truck-order-popup-cancel:hover {
   background: #073996;
   color: #fff;
@@ -273,8 +273,8 @@
 
 .truck-order-confirmation-box {
   background: #fff;
-  top: 100%;
-  margin-top: 200px;
+  top: 1%;
+  margin-top: 30px;
   padding-left: 50px;
   padding-right: 80px;
   padding-bottom: 30px;
@@ -283,7 +283,8 @@
   box-shadow: 0 4px 24px rgba(0,0,0,0.15);
   min-width: 320px;
   text-align: center;
-  margin-bottom: 90px;
+  margin-bottom: 10px;
+  width: 40%;
 }
 
 .truck-order-confirmation-box h3{
@@ -304,6 +305,21 @@
   text-align: left;
 }
 
+.modal-overlay .auth-prompt-box {
+  width: 20%;
+}
+
+.auth-signin-button, .auth-signup-button {
+    padding: 12px 24px;
+    box-sizing: content-box;
+    border: none;
+    border-radius: 6px;
+    margin-left: 20px;
+    margin-bottom: 12px;
+    background-color: #073996;
+    color: white;
+  }
+
 /* Responsive styles for mobile */
 @media (max-width: 600px) {
   .truck-order-popup form {
@@ -321,6 +337,8 @@
     height: 28px;
     font-size: 1.2rem;
   }
+  
+  
 }
 
 /* Add to the end of each CSS file or update existing @media blocks */

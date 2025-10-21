@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./BankPay.css";
 
 export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () => {} }) {
@@ -10,6 +10,21 @@ export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () 
   const [cvv, setCvv] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // --- slip & orders summary (reads from location.state or sessionStorage) ---
+  const loc = location.state || {};
+  const ordersFromState = Array.isArray(loc.orders) ? loc.orders : [];
+  const ordersFromSession = JSON.parse(sessionStorage.getItem("multiOrders") || "[]") || [];
+  const orders = ordersFromState.length > 0 ? ordersFromState : ordersFromSession;
+
+  const transaction_number =
+    loc.transaction_number ||
+    loc.transactionNumber ||
+    sessionStorage.getItem("currentSlipNumber") ||
+    null;
+
+  const totalAmount = orders.reduce((s, o) => s + (Number(o.totalPrice || o.total_price) || 0), 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,10 +34,10 @@ export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () 
     setTimeout(() => {
       if (cardNumber && cardHolder && expiry && cvv) {
         onSuccess();
-        navigate("/PaySuccess");
+        navigate("/PaySuccess", { state: { orders, transaction_number } });
       } else {
         onFail();
-        navigate("/PayFailed");
+        navigate("/PayFailed", { state: { orders, transaction_number } });
       }
       setLoading(false);
     }, 2000);
@@ -112,6 +127,47 @@ export default function BankPay({ amount = 0, onSuccess = () => {}, onFail = () 
           {loading ? "Processing..." : `Pay ₱${(amount || 0).toLocaleString()}`}
         </button>
       </form>
+
+      {/* Slip summary positioned under the main container content */}
+      <div className="slip-summary" style={{ marginTop: 18 }}>
+        {transaction_number && (
+          <div className="slip-header">
+            <strong>Transaction Slip:</strong>
+            <span className="slip-number" style={{ marginLeft: 8 }}>{transaction_number}</span>
+          </div>
+        )}
+
+        <div className="orders-summary">
+          <h3>Order Summary ({orders.length})</h3>
+          {orders.length === 0 ? (
+            <p className="no-orders">No order details available.</p>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {orders.map((o, i) => (
+                <li key={i} className="order-item" style={{ marginBottom: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                    <div>
+                      <strong>{(o.truck && (o.truck.model || o.truck.description)) || o.truck_model || `Order ${i + 1}`}</strong>
+                      <div className="order-meta" style={{ marginTop: 6 }}>
+                        <span>Qty: {o.quantity || 1}</span>
+                        <span style={{ marginLeft: 8 }}>Unit: ₱{Number(o.unitPrice || o.base_price || 0).toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <div style={{ fontWeight: 700, alignSelf: "center" }}>
+                      ₱{Number(o.totalPrice || o.total_price || 0).toLocaleString()}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="orders-footer" style={{ marginTop: 12 }}>
+            <strong>Grand Total:</strong>
+            <span>₱{(totalAmount || amount || 0).toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
 
       {loading && (
         <div className="loading-overlay">
