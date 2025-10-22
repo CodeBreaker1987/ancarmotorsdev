@@ -679,145 +679,167 @@ export default function SalesDashboard() {
             <input type="month" value={month} onChange={e => setMonth(e.target.value)} />
           </div>
 
-          <div className="charts-grid">
-            {['Elf', 'Forward', 'Giga'].map(series => {
-              const modelList = series === 'Elf'
-                ? ELF_MODELS
-                : series === 'Forward'
-                  ? FORWARD_MODELS
-                  : GIGA_MODELS;
+          <div className="charts-grid" style={{ 
+  display: 'flex', 
+  flexDirection: 'column',
+  gap: '2rem' 
+}}>
+  {/* First row: Pie Charts */}
+  <div style={{ 
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '1rem'
+  }}>
+    {['Elf', 'Forward', 'Giga'].map(series => {
+      const modelList = series === 'Elf'
+        ? ELF_MODELS
+        : series === 'Forward'
+          ? FORWARD_MODELS
+          : GIGA_MODELS;
 
-              const monthStart = new Date(month + "-01");
-              const monthEnd = new Date(monthStart);
-              monthEnd.setMonth(monthEnd.getMonth() + 1);
+      const monthStart = new Date(month + "-01");
+      const monthEnd = new Date(monthStart);
+      monthEnd.setMonth(monthEnd.getMonth() + 1);
 
-              const filtered = allOrders.filter(o =>
-                normalizeStatus(o.status) === "completed" &&
-                o.order_timestamp &&
-                (() => {
-                  const d = new Date(o.order_timestamp);
-                  return d >= monthStart && d < monthEnd;
-                })() &&
-                modelList.includes(o.truck_model)
-              );
+      const filtered = allOrders.filter(o =>
+        normalizeStatus(o.status) === "completed" &&
+        o.order_timestamp &&
+        (() => {
+          const d = new Date(o.order_timestamp);
+          return d >= monthStart && d < monthEnd;
+        })() &&
+        modelList.includes(o.truck_model)
+      );
 
-              const pieData = modelList.map(model => {
-                const units = filtered
-                  .filter(o => o.truck_model === model)
-                  .reduce((sum, o) => sum + (Number(o.quantity) || 1), 0);
-                return { name: model, value: units };
-              }).filter(d => d.value > 0);
+      const pieData = modelList.map(model => {
+        const units = filtered
+          .filter(o => o.truck_model === model)
+          .reduce((sum, o) => sum + (Number(o.quantity) || 1), 0);
+        return { name: model, value: units };
+      }).filter(d => d.value > 0);
 
-              return (
-                <div className="chart-box" key={series}>
-                  <h3>{`Isuzu ${series} — Sold Trucks (${month})`}</h3>
-                  {pieData.length === 0 ? (
-                    <div style={{ color: '#888', padding: '2rem', textAlign: 'center' }}>No data for this month.</div>
-                  ) : (
-                    <ResponsiveContainer width="100%" height={260}>
-                      <PieChart>
-                        <Pie dataKey="value" data={pieData} outerRadius={80} label={({ name, value }) => `${name}: ${value}`}>
-                          {pieData.map((entry, idx) => <Cell key={idx} fill={COLORS[idx % COLORS.length]} />)}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
-              );
-            })}
+      return (
+        <div className="chart-box" key={series}>
+          <h3>{`Isuzu ${series} — Sold Trucks (${month})`}</h3>
+          {pieData.length === 0 ? (
+            <div style={{ color: '#888', padding: '2rem', textAlign: 'center' }}>No data for this month.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie 
+                  dataKey="value" 
+                  data={pieData} 
+                  outerRadius={80}
+                  label={false} // Remove labels from pie sections
+                >
+                  {pieData.map((entry, idx) => (
+                    <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend verticalAlign="bottom" height={36} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      );
+    })}
+  </div>
 
-            <div className="row-charts">
-              <div className="chart-box full-row">
-                <h3>Most Popular Sold Truck Models (Top 8)</h3>
-                {allOrders.length === 0 ? (
-                  <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>No orders data available.</div>
-                ) : (() => {
-                  const modelStats = {};
-                  allOrders.filter(o => normalizeStatus(o.status) === "completed").forEach(o => {
-                    modelStats[o.truck_model] = (modelStats[o.truck_model] || 0) + (Number(o.quantity) || 1);
-                  });
-                  const topModels = Object.entries(modelStats)
-                    .map(([name, value]) => ({ name, value }))
-                    .sort((a, b) => b.value - a.value)
-                    .slice(0, 8);
-                  if (topModels.length === 0) {
-                    return <div style={{ color: '#F59E0B', padding: '2rem', textAlign: 'center' }}>No completed sales for any truck model.</div>;
-                  }
-                  return (
-                    <ResponsiveContainer width="100%" height={260}>
-                      <BarChart data={topModels} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" fontSize={12} interval={0} angle={-20} textAnchor="end" height={70} />
-                        <YAxis allowDecimals={false} />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" name="Units Sold" fill="#4F46E5" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  );
-                })()}
-              </div>
+  {/* Second row: Most Popular Trucks Chart */}
+  <div className="chart-box" style={{ width: '100%' }}>
+    <h3>Most Popular Sold Truck Models (Top 8)</h3>
+    {allOrders.length === 0 ? (
+      <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>
+        No orders data available.
+      </div>
+    ) : (() => {
+      const modelStats = {};
+      allOrders.filter(o => normalizeStatus(o.status) === "completed").forEach(o => {
+        modelStats[o.truck_model] = (modelStats[o.truck_model] || 0) + (Number(o.quantity) || 1);
+      });
+      const topModels = Object.entries(modelStats)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8);
+      if (topModels.length === 0) {
+        return <div style={{ color: '#F59E0B', padding: '2rem', textAlign: 'center' }}>No completed sales for any truck model.</div>;
+      }
+      return (
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={topModels} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" fontSize={12} interval={0} angle={-20} textAnchor="end" height={70} />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="value" name="Units Sold" fill="#4F46E5" />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    })()}
+  </div>
 
-              <div className="chart-box full-row">
-                <h3>Revenue Growth by Series (Last 12 Months)</h3>
-                {allOrders.length === 0 ? (
-                  <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>No orders data available.</div>
-                ) : (() => {
-                  const now = new Date();
-                  const months = [];
-                  for (let i = 11; i >= 0; i--) {
-                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-                  }
-                  const seriesList = [
-                    { name: "Elf", models: ELF_MODELS, color: "#4F46E5" },
-                    { name: "Forward", models: FORWARD_MODELS, color: "#06B6D4" },
-                    { name: "Giga", models: GIGA_MODELS, color: "#F59E0B" },
-                  ];
-                  const lineData = months.map(monthStr => {
-                    const ms = new Date(monthStr + "-01");
-                    const me = new Date(ms);
-                    me.setMonth(me.getMonth() + 1);
-                    const obj = { period: monthStr };
-                    seriesList.forEach(series => {
-                      obj[series.name] = allOrders
-                        .filter(o =>
-                          normalizeStatus(o.status) === "completed"
-                          && o.order_timestamp
-                          && new Date(o.order_timestamp) >= ms
-                          && new Date(o.order_timestamp) < me
-                          && series.models.includes(o.truck_model)
-                        )
-                        .reduce((sum, o) => sum + parsePrice(o.total_price), 0);
-                    });
-                    return obj;
-                  });
-                  return (
-                    <ResponsiveContainer width="100%" height={260}>
-                      <LineChart data={lineData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="period" />
-                        <YAxis tickFormatter={v => `₱${(v / 1000000).toFixed(1)}M`} />
-                        <Tooltip formatter={v => `₱${Number(v).toLocaleString()}`} />
-                        <Legend />
-                        {seriesList.map(series => (
-                          <Line
-                            key={series.name}
-                            type="monotone"
-                            dataKey={series.name}
-                            name={series.name}
-                            stroke={series.color}
-                          />
-                        ))}
-                      </LineChart>
-                    </ResponsiveContainer>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
+  {/* Third row: Revenue Growth Chart */}
+  <div className="chart-box" style={{ width: '100%' }}>
+    <h3>Revenue Growth by Series (Last 12 Months)</h3>
+    {allOrders.length === 0 ? (
+      <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>
+        No orders data available.
+      </div>
+    ) : (() => {
+      const now = new Date();
+      const months = [];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+      }
+      const seriesList = [
+        { name: "Elf", models: ELF_MODELS, color: "#4F46E5" },
+        { name: "Forward", models: FORWARD_MODELS, color: "#06B6D4" },
+        { name: "Giga", models: GIGA_MODELS, color: "#F59E0B" },
+      ];
+      const lineData = months.map(monthStr => {
+        const ms = new Date(monthStr + "-01");
+        const me = new Date(ms);
+        me.setMonth(me.getMonth() + 1);
+        const obj = { period: monthStr };
+        seriesList.forEach(series => {
+          obj[series.name] = allOrders
+            .filter(o =>
+              normalizeStatus(o.status) === "completed"
+              && o.order_timestamp
+              && new Date(o.order_timestamp) >= ms
+              && new Date(o.order_timestamp) < me
+              && series.models.includes(o.truck_model)
+            )
+            .reduce((sum, o) => sum + parsePrice(o.total_price), 0);
+        });
+        return obj;
+      });
+      return (
+        <ResponsiveContainer width="100%" height={260}>
+          <LineChart data={lineData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="period" />
+            <YAxis tickFormatter={v => `₱${(v / 1000000).toFixed(1)}M`} />
+            <Tooltip formatter={v => `₱${Number(v).toLocaleString()}`} />
+            <Legend />
+            {seriesList.map(series => (
+              <Line
+                key={series.name}
+                type="monotone"
+                dataKey={series.name}
+                name={series.name}
+                stroke={series.color}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      );
+    })()}
+  </div>
+</div>
         </section>
       )}
     </div>
