@@ -461,26 +461,40 @@ export default function SalesDashboard() {
       return;
     }
 
-    // Get the first order with customer information
-    const orderWithCustomerInfo = relatedOrders.find(o => 
-      o.first_name || o.last_name || o.email_address || o.phone_number || o.home_address
-    ) || relatedOrders[0];
+    // Get the first order that should contain customer info
+    const orderWithCustomerInfo = relatedOrders[0];
 
-    // Set the active slip details with proper null checks
+    // Debug log to check the data
+    console.log('Order with customer info:', orderWithCustomerInfo);
+
+    // Set the active slip details using direct order data
     setActiveSlip({
       transactionNumber,
       date: orderWithCustomerInfo.order_timestamp,
       customer: {
-        name: `${orderWithCustomerInfo.first_name || ''} ${orderWithCustomerInfo.last_name || ''}`.trim() || 'N/A',
+        name: orderWithCustomerInfo.first_name && orderWithCustomerInfo.last_name 
+          ? `${orderWithCustomerInfo.first_name} ${orderWithCustomerInfo.last_name}` 
+          : 'N/A',
         email: orderWithCustomerInfo.email_address || 'N/A',
         phone: orderWithCustomerInfo.phone_number || 'N/A',
-        address: orderWithCustomerInfo.home_address || 'N/A',
+        address: orderWithCustomerInfo.home_address || 'N/A'
       },
       totalAmount: relatedOrders.reduce((sum, order) => sum + parsePrice(order.total_price), 0)
     });
     
+    // Set orders for the table in modal
     setSlipOrders(relatedOrders);
     setShowSlipModal(true);
+
+    // Debug log the set data
+    console.log('Set active slip:', {
+      transactionNumber,
+      customerName: `${orderWithCustomerInfo.first_name} ${orderWithCustomerInfo.last_name}`,
+      customerEmail: orderWithCustomerInfo.email_address,
+      customerPhone: orderWithCustomerInfo.phone_number,
+      customerAddress: orderWithCustomerInfo.home_address,
+      relatedOrdersCount: relatedOrders.length
+    });
   };
 
   const modalStyles = {
@@ -809,7 +823,7 @@ export default function SalesDashboard() {
   </div>
 
   {/* Second row: Most Popular Trucks Chart */}
-  <div className="chart-box" style={{ width: '90%' }}>
+  <div className="chart-box" style={{ width: '95%' }}>
     <h3>Most Popular Sold Truck Models (Top 8)</h3>
     {allOrders.length === 0 ? (
       <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>
@@ -843,7 +857,7 @@ export default function SalesDashboard() {
   </div>
 
   {/* Third row: Revenue Growth Chart */}
-  <div className="chart-box" style={{ width: '90%' }}>
+  <div className="chart-box" style={{ width: '95%' }}>
     <h3>Revenue Growth by Series (Last 12 Months)</h3>
     {allOrders.length === 0 ? (
       <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>
