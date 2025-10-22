@@ -127,7 +127,9 @@ export default function SalesDashboard() {
   const ORDERS_PER_PAGE = 10;
 
   const [refreshTimer, setRefreshTimer] = useState(null);
-  const [isResending, setIsResending] = useState(false);
+
+  // track per-transaction resend in-flight
+  const [sendingSlipTx, setSendingSlipTx] = useState({}); // { [transaction_number]: true }
 
   const positionLevels = {
     "ceo": "top",
@@ -194,6 +196,7 @@ export default function SalesDashboard() {
       const normalizeRow = (r) => ({
         ...r,
         orderid: r.orderid ?? r.orderId ?? r.id,
+        transaction_number: r.transaction_number ?? r.transactionNumber ?? r.transaction_number ?? null,
         userid: r.userid ?? r.user_id ?? r.userId,
         username: r.username ?? r.user_name,
         truck_model: r.truck_model ?? r.truckModel,
@@ -388,49 +391,37 @@ export default function SalesDashboard() {
     setRefreshTimer(newTimer);
   }, [refreshTimer]);
 
-  const handleGlobalResend = async () => {
-    setIsResending(true);
+  // Resend single transaction slip (triggers create_slip_scheduled netlify function)
+  const handleResendSlip = async (transactionNumber) => {
+    if (!transactionNumber) {
+      toast.error("No transaction slip number available for this order");
+      return;
+    }
     try {
-      const currentOrders = orders.filter(order => 
-        FILTERS[filterIdx].statuses.includes(order.status)
-      );
+      setSendingSlipTx(prev => ({ ...prev, [transactionNumber]: true }));
+      const res = await fetch("/.netlify/functions/create_slip_scheduled", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transaction_number: transactionNumber }),
+      });
+      const txt = await res.text();
+      let json = {};
+      try { json = txt ? JSON.parse(txt) : {}; } catch (e) { json = { message: txt }; }
 
-      let successCount = 0;
-      let failCount = 0;
-
-      for (const order of currentOrders) {
-        try {
-          const response = await fetch('/.netlify/functions/schedule_slip_refresh', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              userid: order.userid,
-              slipType: order.status.toLowerCase().includes('completed') ? 'completed' : 'active'
-            })
-          });
-
-          if (!response.ok) {
-            failCount++;
-            console.error(`Failed to schedule slip for order ${order.orderid}`);
-            continue;
-          }
-          successCount++;
-        } catch (err) {
-          failCount++;
-          console.error(`Error scheduling slip for order ${order.orderid}:`, err);
-        }
+      if (!res.ok) {
+        throw new Error(json.error || json.message || "Failed to schedule slip resend");
       }
-      
-      if (failCount === 0) {
-        toast.success(`Successfully scheduled ${successCount} slip${successCount !== 1 ? 's' : ''} for resend`);
-      } else {
-        toast.warning(`Scheduled ${successCount} slip${successCount !== 1 ? 's' : ''}, but ${failCount} failed`);
-      }
-    } catch (error) {
-      console.error('Failed to resend slips:', error);
-      toast.error('Failed to schedule slip resends');
+
+      toast.success(`Resend scheduled for slip ${transactionNumber}`);
+    } catch (err) {
+      console.error("Error resending slip:", err);
+      toast.error(`Failed to resend slip: ${err.message || err}`);
     } finally {
-      setIsResending(false);
+      setSendingSlipTx(prev => {
+        const copy = { ...prev };
+        delete copy[transactionNumber];
+        return copy;
+      });
     }
   };
 
@@ -553,6 +544,8 @@ export default function SalesDashboard() {
             <table className="orders-table">
               <thead>
                 <tr>
+                  <th>Transaction Slip</th>
+                  <th>Slip Actions</th>
                   <th>Order ID</th>
                   <th>Order Date</th>
                   <th>UserID</th>
@@ -560,15 +553,47 @@ export default function SalesDashboard() {
                   <th>Order Status</th>
                   <th>Change Status</th>
                   <th>Payment Status</th>
-                  <th>Actions</th>
+                  <th>Resend Slip</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={visibleColumns.length + 6}>Loading...</td></tr>
+                  <tr><td colSpan={visibleColumns.length + 10}>Loading...</td></tr>
                 ) : paginatedOrders.length > 0 ? (
                   paginatedOrders.map(o => (
-                    <tr key={o.orderid}>
+                    <tr key={o.orderid || `${o.transaction_number}-${o.orderid}`}>
+                      <td>{o.transaction_number ?? "-"}</td>
+
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            try {
+                              navigator.clipboard?.writeText(o.transaction_number || "");
+                              toast.success("Transaction slip copied to clipboard");
+                            } catch (e) {
+                              toast.info(o.transaction_number || "No slip available");
+                            }
+                          }}
+                          style={{ marginRight: 6 }}
+                        >
+                          Copy Slip
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // navigate to a slip view page if exists, otherwise copy
+                            if (o.transaction_number) {
+                              navigate(`/SlipView/${encodeURIComponent(o.transaction_number)}`);
+                            } else {
+                              toast.info("No transaction slip to view");
+                            }
+                          }}
+                        >
+                          View Slip
+                        </button>
+                      </td>
+
                       <td>{o.orderid}</td>
                       <td>{o.order_timestamp ? new Date(o.order_timestamp).toLocaleString() : "-"}</td>
                       <td>{o.userid}</td>
@@ -592,21 +617,20 @@ export default function SalesDashboard() {
                         </select>
                       </td>
                       <td>{(o.payment_status ? o.payment_status.charAt(0).toUpperCase() + o.payment_status.slice(1) : "Pending")}</td>
+
                       <td>
-                        <select
-                          value={normalizeStatus(o.payment_status || "pending")}
-                          onChange={e => handlePaymentStatusChange(o.orderid, e.target.value)}
-                          className="status-dropdown"
+                        <button
+                          type="button"
+                          onClick={() => handleResendSlip(o.transaction_number)}
+                          disabled={sendingSlipTx[o.transaction_number]}
                         >
-                          {PAYMENT_STATUS_OPTIONS.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
+                          {sendingSlipTx[o.transaction_number] ? "Sending..." : "Resend Slip"}
+                        </button>
                       </td>
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan={visibleColumns.length + 6}>No orders found for this filter/month.</td></tr>
+                  <tr><td colSpan={visibleColumns.length + 10}>No orders found for this filter/month.</td></tr>
                 )}
               </tbody>
             </table>
@@ -633,18 +657,8 @@ export default function SalesDashboard() {
                   Next
                 </button>
               </div>
-              
-              <button 
-                onClick={handleGlobalResend}
-                disabled={isResending}
-                className="resend-button"
-              >
-                {isResending ? (
-                  <BiLoaderAlt className="loading-spinner" />
-                ) : (
-                  `Resend All ${FILTERS[filterIdx].label} Slips`
-                )}
-              </button>
+
+              {/* Removed global resend all button as requested */}
             </div>
         </section>
         

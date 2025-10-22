@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "../../Context/UserContext.jsx";
 import "./TruckOrderForm.css";
+import { toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const SHIPPING = [
   { label: "Standard (1-4 days)", value: "Standard (1-4 days)" },
@@ -242,10 +244,21 @@ export default function TruckOrderForm({
       shippingDate,
       paymentMethod,
     };
-    addOrderToSession(orderDetails);
+    const { slip, multi } = addOrderToSession(orderDetails);
     // redirect user back to inventory to pick another truck
     setShowConfirmation(false);
     navigate("/InventoryNav");
+
+    // Notify user with toast and show current multiOrders content
+    try {
+      toast.success("Product added to multi-orders list successfully");
+      const currentMulti = sessionStorage.getItem("multiOrders") || "[]";
+      const pretty = JSON.stringify(JSON.parse(currentMulti), null, 2);
+      toast.info(<pre style={{ whiteSpace: 'pre-wrap' }}>{pretty}</pre>, { autoClose: 8000 });
+    } catch (err) {
+      // fallback simple message if JSON parse or toast render fails
+      toast.info("Multi-orders updated. Open your orders list to review.");
+    }
   };
 
   const handleFinalizeOrder = () => {

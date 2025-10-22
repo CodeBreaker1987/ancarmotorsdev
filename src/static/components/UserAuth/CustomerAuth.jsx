@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./CustomerAuth.css";
 import { useUser } from "../../Context/UserContext.jsx";
+import { toast } from "react-toastify";
 
 const CustomerAuth = ({ setView, onClose }) => {
   const { login } = useUser();
@@ -37,7 +38,7 @@ const CustomerAuth = ({ setView, onClose }) => {
       const fullUser = { ...customerData.user, role: "customer" };
       login(fullUser, "customer");
       localStorage.setItem("user", JSON.stringify(fullUser));
-      alert("✅ Customer login successful!");
+      toast.success("Customer login successful!");
       // Redirect logic: if login was triggered by checkout, go to product page; else homepage
       if (mergedState && mergedState.fromCheckout && mergedState.productPath) {
         navigate(mergedState.productPath, { state: mergedState.productState });
@@ -47,7 +48,7 @@ const CustomerAuth = ({ setView, onClose }) => {
       }
       onClose();
     } catch (err) {
-      alert("❌ Login failed: " + err.message);
+      toast.error("Login failed: " + err.message);
     }
   };
 

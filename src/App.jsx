@@ -26,6 +26,8 @@ import PaySuccess from "./static/components/Payment/PaySuccess";
 import PayFailed from "./static/components/Payment/PayFailed";
 import { UserProvider, useUser } from "./static/Context/UserContext";
 import PaymentPending from "./static/components/Payment/PaymentPending.jsx";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function AppContent() {
   const location = useLocation();
@@ -69,6 +71,8 @@ function AppContent() {
 
   return (
     <div className="App">
+      {/* Toast container for app-wide notifications */}
+      <ToastContainer position="top-right" />
       {/* Always show Nav for logged-out users, except on SalesDashboard */}
       {!isSalesDashboard && (
         <Nav

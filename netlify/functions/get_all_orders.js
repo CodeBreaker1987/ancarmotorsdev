@@ -40,11 +40,12 @@ export async function handler(event, context) {
     };
   }
 
-  // Modified query to include payment_status and calculate totals
+  // Modified query to include payment_status, transaction_number and calculate totals
   let query = `
     WITH OrdersData AS (
       SELECT
         o.orderid,
+        o.transaction_number,
         o.order_timestamp,
         o.userid,
         o.username,
