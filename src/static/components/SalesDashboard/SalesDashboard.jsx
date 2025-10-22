@@ -22,8 +22,16 @@ import "./SalesDashboard.css";
 import AncarLogo from "../../../assets/media/AncarLogo.7ad7473b37e000adbeb6.png";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Modal from 'react-modal';
 
 /* ---------- Constants ---------- */
+
+// Add this constant near your other constants at the top of the file
+const tableCellStyle = {
+  padding: '12px 8px',
+  borderBottom: '1px solid #E5E7EB',
+  textAlign: 'left'
+};
 
 const COLORS = [
   "#4F46E5",
@@ -434,6 +442,61 @@ export default function SalesDashboard() {
     };
   }, [orders, filterIdx]); // Reschedule when orders or filter changes
 
+  const [showSlipModal, setShowSlipModal] = useState(false);
+  const [activeSlip, setActiveSlip] = useState(null);
+  const [slipOrders, setSlipOrders] = useState([]);
+
+  const handleViewSlip = async (transactionNumber) => {
+    if (!transactionNumber) {
+      toast.info("No transaction slip to view");
+      return;
+    }
+
+    // Find all orders with this transaction number
+    const relatedOrders = allOrders.filter(o => o.transaction_number === transactionNumber);
+    
+    if (relatedOrders.length === 0) {
+      toast.error("No orders found for this transaction slip");
+      return;
+    }
+
+    // Set the active slip details
+    setActiveSlip({
+      transactionNumber,
+      date: relatedOrders[0].order_timestamp,
+      customer: {
+        name: `${relatedOrders[0].first_name} ${relatedOrders[0].last_name}`,
+        email: relatedOrders[0].email_address,
+        phone: relatedOrders[0].phone_number,
+        address: relatedOrders[0].home_address,
+      },
+      totalAmount: relatedOrders.reduce((sum, order) => sum + parsePrice(order.total_price), 0)
+    });
+    
+    setSlipOrders(relatedOrders);
+    setShowSlipModal(true);
+  };
+
+  const modalStyles = {
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      width: '80%',
+      maxWidth: '900px',
+      maxHeight: '80vh',
+      overflow: 'auto',
+      borderRadius: '8px',
+      padding: '20px',
+    },
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.75)'
+    }
+  };
+
   if (!user) {
     return <p>Please log in to view the sales dashboard.</p>;
   }
@@ -581,14 +644,7 @@ export default function SalesDashboard() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            // navigate to a slip view page if exists, otherwise copy
-                            if (o.transaction_number) {
-                              navigate(`/SlipView/${encodeURIComponent(o.transaction_number)}`);
-                            } else {
-                              toast.info("No transaction slip to view");
-                            }
-                          }}
+                          onClick={() => handleViewSlip(o.transaction_number)}
                         >
                           View Slip
                         </button>
@@ -747,7 +803,7 @@ export default function SalesDashboard() {
   </div>
 
   {/* Second row: Most Popular Trucks Chart */}
-  <div className="chart-box" style={{ width: '100%' }}>
+  <div className="chart-box" style={{ width: '90%' }}>
     <h3>Most Popular Sold Truck Models (Top 8)</h3>
     {allOrders.length === 0 ? (
       <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>
@@ -781,7 +837,7 @@ export default function SalesDashboard() {
   </div>
 
   {/* Third row: Revenue Growth Chart */}
-  <div className="chart-box" style={{ width: '100%' }}>
+  <div className="chart-box" style={{ width: '90%' }}>
     <h3>Revenue Growth by Series (Last 12 Months)</h3>
     {allOrders.length === 0 ? (
       <div style={{ color: '#EF4444', padding: '2rem', textAlign: 'center' }}>
@@ -842,6 +898,79 @@ export default function SalesDashboard() {
 </div>
         </section>
       )}
+
+      {showSlipModal && activeSlip && (
+  <Modal
+    isOpen={showSlipModal}
+    onRequestClose={() => setShowSlipModal(false)}
+    style={modalStyles}
+    contentLabel="Transaction Slip Details"
+  >
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setShowSlipModal(false)}
+        style={{
+          position: 'absolute',
+          right: '0',
+          top: '0',
+          background: 'none',
+          border: 'none',
+          fontSize: '1.5rem',
+          cursor: 'pointer'
+        }}
+      >
+        ×
+      </button>
+      
+      <h2 style={{ marginBottom: '1.5rem', color: '#144180' }}>Transaction Slip Details</h2>
+      
+      <div style={{ marginBottom: '2rem' }}>
+        <h3 style={{ color: '#4B5563', marginBottom: '0.5rem' }}>Transaction Information</h3>
+        <p><strong>Slip Number:</strong> {activeSlip.transactionNumber}</p>
+        <p><strong>Date:</strong> {new Date(activeSlip.date).toLocaleString()}</p>
+        <p><strong>Total Amount:</strong> ₱ {activeSlip.totalAmount.toLocaleString()}</p>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h3 style={{ color: '#4B5563', marginBottom: '0.5rem' }}>Customer Information</h3>
+        <p><strong>Name:</strong> {activeSlip.customer.name}</p>
+        <p><strong>Email:</strong> {activeSlip.customer.email}</p>
+        <p><strong>Phone:</strong> {activeSlip.customer.phone}</p>
+        <p><strong>Address:</strong> {activeSlip.customer.address}</p>
+      </div>
+
+      <div>
+        <h3 style={{ color: '#4B5563', marginBottom: '1rem' }}>Associated Orders</h3>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#F3F4F6' }}>
+                <th style={tableCellStyle}>Order ID</th>
+                <th style={tableCellStyle}>Truck Model</th>
+                <th style={tableCellStyle}>Quantity</th>
+                <th style={tableCellStyle}>Unit Price</th>
+                <th style={tableCellStyle}>Total Price</th>
+                <th style={tableCellStyle}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {slipOrders.map(order => (
+                <tr key={order.orderid}>
+                  <td style={tableCellStyle}>{order.orderid}</td>
+                  <td style={tableCellStyle}>{order.truck_model}</td>
+                  <td style={tableCellStyle}>{order.quantity}</td>
+                  <td style={tableCellStyle}>₱ {parsePrice(order.base_price).toLocaleString()}</td>
+                  <td style={tableCellStyle}>₱ {parsePrice(order.total_price).toLocaleString()}</td>
+                  <td style={tableCellStyle}>{order.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </Modal>
+)}
     </div>
   );
 }
