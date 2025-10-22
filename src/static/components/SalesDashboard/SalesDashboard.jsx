@@ -517,6 +517,23 @@ export default function SalesDashboard() {
     }
   };
 
+  // Add a custom tooltip component for pie charts (shows name + total amount and units)
+const PieTooltip = ({ active, payload }) => {
+  if (!active || !payload || !payload.length) return null;
+  const p = payload[0].payload || {};
+  const name = p.name ?? "Item";
+  const units = p.value ?? 0;
+  const amount = p.amount ?? 0; // amount in currency (if available)
+
+  return (
+    <div style={{ background: "white", border: "1px solid #e5e7eb", padding: 8, borderRadius: 6 }}>
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>{name}</div>
+      <div style={{ fontSize: 13, color: "#374151" }}>Units: {units}</div>
+      <div style={{ fontSize: 13, color: "#374151" }}>Total: ₱ {Number(amount).toLocaleString()}</div>
+    </div>
+  );
+};
+
   if (!user) {
     return <p>Please log in to view the sales dashboard.</p>;
   }
@@ -788,10 +805,10 @@ export default function SalesDashboard() {
       );
 
       const pieData = modelList.map(model => {
-        const units = filtered
-          .filter(o => o.truck_model === model)
-          .reduce((sum, o) => sum + (Number(o.quantity) || 1), 0);
-        return { name: model, value: units };
+        const modelOrders = filtered.filter(o => o.truck_model === model);
+        const units = modelOrders.reduce((sum, o) => sum + (Number(o.quantity) || 1), 0);
+        const amount = modelOrders.reduce((sum, o) => sum + parsePrice(o.total_price), 0);
+        return { name: model, value: units, amount };
       }).filter(d => d.value > 0);
 
       return (
@@ -812,7 +829,7 @@ export default function SalesDashboard() {
                     <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip content={<PieTooltip />} />
                 <Legend verticalAlign="bottom" height={36} />
               </PieChart>
             </ResponsiveContainer>
