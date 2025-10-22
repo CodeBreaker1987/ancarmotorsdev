@@ -214,11 +214,12 @@ export default function SalesDashboard() {
         payment_status: (r.payment_status ?? r.paymentStatus ?? "pending"),
         status: r.status ?? r.order_status ?? "",
         order_timestamp: normalizeTimestampToISO(r.order_timestamp ?? r.created_at ?? r.order_date) || r.order_timestamp || null,
-        first_name: r.first_name ?? r.firstName ?? "",
-        last_name: r.last_name ?? r.lastName ?? "",
-        home_address: r.home_address ?? r.address ?? "",
-        email_address: r.email_address ?? r.email ?? "",
-        phone_number: r.phone_number ?? r.phone ?? "",
+        // Fix customer information normalization
+        first_name: r.first_name ?? r.firstName ?? r.customer?.first_name ?? "",
+        last_name: r.last_name ?? r.lastName ?? r.customer?.last_name ?? "",
+        home_address: r.home_address ?? r.address ?? r.customer?.address ?? r.customer?.home_address ?? "",
+        email_address: r.email_address ?? r.email ?? r.customer?.email ?? r.customer?.email_address ?? "",
+        phone_number: r.phone_number ?? r.phone ?? r.customer?.phone ?? r.customer?.phone_number ?? "",
       });
 
       const ordersArr = Array.isArray(ordersJson.orders)
@@ -460,15 +461,20 @@ export default function SalesDashboard() {
       return;
     }
 
-    // Set the active slip details
+    // Get the first order with customer information
+    const orderWithCustomerInfo = relatedOrders.find(o => 
+      o.first_name || o.last_name || o.email_address || o.phone_number || o.home_address
+    ) || relatedOrders[0];
+
+    // Set the active slip details with proper null checks
     setActiveSlip({
       transactionNumber,
-      date: relatedOrders[0].order_timestamp,
+      date: orderWithCustomerInfo.order_timestamp,
       customer: {
-        name: `${relatedOrders[0].first_name} ${relatedOrders[0].last_name}`,
-        email: relatedOrders[0].email_address,
-        phone: relatedOrders[0].phone_number,
-        address: relatedOrders[0].home_address,
+        name: `${orderWithCustomerInfo.first_name || ''} ${orderWithCustomerInfo.last_name || ''}`.trim() || 'N/A',
+        email: orderWithCustomerInfo.email_address || 'N/A',
+        phone: orderWithCustomerInfo.phone_number || 'N/A',
+        address: orderWithCustomerInfo.home_address || 'N/A',
       },
       totalAmount: relatedOrders.reduce((sum, order) => sum + parsePrice(order.total_price), 0)
     });
