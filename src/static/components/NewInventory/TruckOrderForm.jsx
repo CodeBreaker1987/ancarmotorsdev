@@ -249,14 +249,33 @@ export default function TruckOrderForm({
     setShowConfirmation(false);
     navigate("/InventoryNav");
 
-    // Notify user with toast and show current multiOrders content
+    // Notify user with toast and show current multiOrders content (pretty summary)
     try {
       toast.success("Product added to multi-orders list successfully");
+
       const currentMulti = sessionStorage.getItem("multiOrders") || "[]";
-      const pretty = JSON.stringify(JSON.parse(currentMulti), null, 2);
-      toast.info(<pre style={{ whiteSpace: 'pre-wrap' }}>{pretty}</pre>, { autoClose: 8000 });
+      const parsed = JSON.parse(currentMulti);
+
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        toast.info("Multi-orders updated. Open your orders list to review.");
+        return;
+      }
+
+      const lines = parsed.map((o, idx) => {
+        const model = o.truck?.model || o.truck?.description || "Unknown model";
+        const qty = o.quantity ?? 1;
+        const unit = o.unitPrice ?? o.unit_price ?? 0;
+        const total = o.totalPrice ?? o.total_price ?? unit * qty;
+        const slipNum = o.transaction_number || slip || "N/A";
+        return `${idx + 1}. ${model} — Qty: ${qty} — Unit: ₱${Number(unit).toLocaleString()} — Total: ₱${Number(total).toLocaleString()} — Slip: ${slipNum}`;
+      });
+
+      const summary = `Multi-Orders (${parsed.length}):\n\n${lines.join("\n")}`;
+
+      // show as plain text so it renders cleanly across environments
+      toast.info(summary, { autoClose: 10000 });
     } catch (err) {
-      // fallback simple message if JSON parse or toast render fails
+      // fallback simple message if anything goes wrong
       toast.info("Multi-orders updated. Open your orders list to review.");
     }
   };
