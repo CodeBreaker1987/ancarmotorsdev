@@ -249,7 +249,7 @@ export default function TruckOrderForm({
     setShowConfirmation(false);
     navigate("/InventoryNav");
 
-    // Notify user with toast and show current multiOrders content (pretty summary)
+    // Notify user with toast and show current multiOrders content (pretty column summary)
     try {
       toast.success("Product added to multi-orders list successfully");
 
@@ -261,19 +261,42 @@ export default function TruckOrderForm({
         return;
       }
 
-      const lines = parsed.map((o, idx) => {
-        const model = o.truck?.model || o.truck?.description || "Unknown model";
-        const qty = o.quantity ?? 1;
-        const unit = o.unitPrice ?? o.unit_price ?? 0;
-        const total = o.totalPrice ?? o.total_price ?? unit * qty;
-        const slipNum = o.transaction_number || slip || "N/A";
-        return `${idx + 1}. ${model} — Qty: ${qty} — Unit: ₱${Number(unit).toLocaleString()} — Total: ₱${Number(total).toLocaleString()} — Slip: ${slipNum}`;
-      });
+      const content = (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 280 }}>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>
+            Multi-Orders ({parsed.length})
+          </div>
+          {parsed.map((o, idx) => {
+            const model = o.truck?.model || o.truck?.description || "Unknown model";
+            const qty = o.quantity ?? 1;
+            const unit = o.unitPrice ?? o.unit_price ?? 0;
+            const total = o.totalPrice ?? o.total_price ?? unit * qty;
+            const slipNum = o.transaction_number || slip || "N/A";
+            return (
+              <div
+                key={`${slipNum}-${idx}`}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  padding: "6px 0",
+                  borderBottom: "1px solid rgba(0,0,0,0.06)",
+                }}
+              >
+                <span style={{ fontWeight: 600 }}>{idx + 1}. {model}</span>
+                <span style={{ fontSize: 13, color: "#333" }}>
+                  Qty: {qty} · Unit: ₱{Number(unit).toLocaleString()} · Total: ₱{Number(total).toLocaleString()}
+                </span>
+                <span style={{ fontSize: 12, color: "#666" }}>Slip: {slipNum}</span>
+              </div>
+            );
+          })}
+          <div style={{ fontSize: 12, color: "#444", marginTop: 6 }}>
+            Open your orders list to review or finalize.
+          </div>
+        </div>
+      );
 
-      const summary = `Multi-Orders (${parsed.length}):\n\n${lines.join("\n")}`;
-
-      // show as plain text so it renders cleanly across environments
-      toast.info(summary, { autoClose: 10000 });
+      toast.info(content, { autoClose: 10000 });
     } catch (err) {
       // fallback simple message if anything goes wrong
       toast.info("Multi-orders updated. Open your orders list to review.");
