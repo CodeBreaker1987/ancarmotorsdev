@@ -122,7 +122,16 @@ function AppContent() {
 
 function App() {
   return (
+    <>
       <AppContent />
+      <ToastContainer
+        className="global-toast-container"
+        toastClassName="global-toast"
+        newestOnTop
+        pauseOnHover
+        closeOnClick
+      />
+    </>
   );
 }
 
