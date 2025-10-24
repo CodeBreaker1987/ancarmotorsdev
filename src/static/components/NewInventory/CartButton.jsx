@@ -102,8 +102,37 @@ export default function CartButton() {
       window.alert("No items in cart to checkout.");
       return;
     }
-    navigate("/checkout", { state: { orders, fromCart: true } });
+
+    // take the last order as the one to finalize (same behavior as TruckOrderForm.finalize)
+    const last = orders[orders.length - 1] || {};
+
+    // ensure there's a slip/transaction number
+    let slip = last.transaction_number || last.transaction || last.transactionNo || last.transactionNumber;
+    if (!slip) {
+      const year = new Date().getFullYear();
+      slip = `SLIP-${year}-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`;
+      // persist current slip for other code that may read it
+      try {
+        sessionStorage.setItem("currentSlipNumber", slip);
+      } catch (e) {}
+      // attach to the last order copy so pendingOrder contains it
+      last.transaction_number = slip;
+    }
+
+    // persist pendingOrder (legacy expectation), ensure multiOrders kept in sessionStorage
+    try {
+      sessionStorage.setItem("pendingOrder", JSON.stringify(last));
+      sessionStorage.setItem("multiOrders", JSON.stringify(orders));
+      sessionStorage.setItem("postOtpRedirect", "/PaymentNav");
+      const pm = last.paymentMethod || last.payment || last.payment_method || "Bank Transfer";
+      sessionStorage.setItem("postOtpPaymentMethod", pm);
+      try { window.dispatchEvent(new Event("ordersUpdated")); } catch (e) {}
+    } catch (err) {
+      console.error("Error preparing pending order for checkout:", err);
+    }
+
     setOpen(false);
+    navigate("/OtpVerificationPage");
   };
 
   const formatMoney = (val) => {

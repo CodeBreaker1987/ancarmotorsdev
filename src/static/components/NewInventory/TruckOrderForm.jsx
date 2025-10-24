@@ -326,6 +326,16 @@ export default function TruckOrderForm({
     setShowConfirmation(false);
     // set a single pendingOrder for any legacy code (PaymentNav has been updated to read multiOrders)
     sessionStorage.setItem("pendingOrder", JSON.stringify(orderDetails));
+
+    // ensure OTP flow knows where to redirect after verification (match CartButton)
+    try {
+      sessionStorage.setItem("postOtpRedirect", "/PaymentNav");
+      const pm = orderDetails.paymentMethod || orderDetails.payment || "Bank Transfer";
+      sessionStorage.setItem("postOtpPaymentMethod", pm);
+    } catch (e) {
+      console.error("Failed to persist post-OTP redirect/payment method:", e);
+    }
+
     navigate("/OtpVerificationPage");
   };
 
