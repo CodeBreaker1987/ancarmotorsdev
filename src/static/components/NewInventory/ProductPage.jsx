@@ -4,6 +4,7 @@ import TruckOrderForm from "./TruckOrderForm";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "../../Context/UserContext.jsx";
 import "./ProductPage.css";
+import CartButton from "./CartButton";
 
 const ProductPage = () => {
   const { user } = useUser();
@@ -106,6 +107,7 @@ useEffect(() => {
         />
       </div>
 
+     <CartButton />
      
     </div>
   );

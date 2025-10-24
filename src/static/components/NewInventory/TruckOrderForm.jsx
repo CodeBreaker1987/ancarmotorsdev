@@ -102,6 +102,8 @@ export default function TruckOrderForm({
 
       multi.push(orderWithSlip);
       sessionStorage.setItem("multiOrders", JSON.stringify(multi));
+      // notify same-tab listeners (CartButton listens for this)
+      try { window.dispatchEvent(new Event("ordersUpdated")); } catch (e) {}
       return { slip, multi };
     } catch (err) {
       console.error("Failed to save order to sessionStorage:", err);
@@ -119,6 +121,7 @@ export default function TruckOrderForm({
           },
         ];
         sessionStorage.setItem("multiOrders", JSON.stringify(fallback));
+        try { window.dispatchEvent(new Event("ordersUpdated")); } catch (e) {}
         return { slip, multi: fallback };
       } catch (e) {
         console.error("Fallback save failed:", e);
