@@ -26,25 +26,65 @@ const writeOrders = (orders) => {
   }
 };
 
+// determine logged-in state by probing common storage keys
+const readIsLoggedIn = () => {
+  try {
+    const probeKeys = [
+      "user",
+      "currentUser",
+      "authUser",
+      "token",
+      "authToken",
+      "accessToken",
+      "isLoggedIn",
+    ];
+    for (const k of probeKeys) {
+      const v = sessionStorage.getItem(k) ?? localStorage.getItem(k);
+      if (!v) continue;
+      if (k === "isLoggedIn") {
+        const normalized = v.toLowerCase();
+        if (normalized === "1" || normalized === "true") return true;
+        if (normalized === "0" || normalized === "false") return false;
+      } else {
+        // if it's JSON "null" treat as not logged in
+        if (v === "null") continue;
+        return true;
+      }
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 export default function CartButton() {
   const [open, setOpen] = useState(false);
   const [orders, setOrders] = useState(readOrders());
   const [expandedIndexes, setExpandedIndexes] = useState([]); // indexes of expanded items
+  const [loggedIn, setLoggedIn] = useState(readIsLoggedIn());
   const popupRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     // keep in sync with sessionStorage changes (other tabs)
-    const onStorage = () => setOrders(readOrders());
+    const onStorage = () => {
+      setOrders(readOrders());
+      setLoggedIn(readIsLoggedIn());
+    };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   useEffect(() => {
-    // keep in sync with same-tab updates via custom event
+    // keep in sync with same-tab updates via custom events
     const onSessionUpdate = () => setOrders(readOrders());
+    const onAuthUpdate = () => setLoggedIn(readIsLoggedIn());
     window.addEventListener("ordersUpdated", onSessionUpdate);
-    return () => window.removeEventListener("ordersUpdated", onSessionUpdate);
+    window.addEventListener("authUpdated", onAuthUpdate);
+    return () => {
+      window.removeEventListener("ordersUpdated", onSessionUpdate);
+      window.removeEventListener("authUpdated", onAuthUpdate);
+    };
   }, []);
 
   // refresh orders whenever the popup is opened
@@ -214,6 +254,9 @@ export default function CartButton() {
       </div>
     );
   };
+
+  // hide the cart entirely if user is not logged in
+  if (!loggedIn) return null;
 
   return (
     <>
