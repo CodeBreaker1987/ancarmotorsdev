@@ -24,7 +24,7 @@ const AdminAuth = ({ setView, onClose }) => {
       const fullUser = { ...adminData.data, role: "admin" };
       login(fullUser, "admin");
       localStorage.setItem("user", JSON.stringify(fullUser));
-      toast.success("Admin login successful!");
+      toast.success("Admin login successful!",);
       onClose();
       // Determine if user is owner
       const position = (fullUser.company_position || fullUser.position || "").toLowerCase();
@@ -34,7 +34,7 @@ const AdminAuth = ({ setView, onClose }) => {
         navigate("/SalesDashboard");
       }
     } catch (err) {
-      toast.error("Login failed: " + err.message);
+      toast.error("Login failed: " + err.message,);
     }
   };
 

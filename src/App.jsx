@@ -72,7 +72,13 @@ function AppContent() {
   return (
     <div className="App">
       {/* Toast container for app-wide notifications */}
-      <ToastContainer position="top-right" />
+      <ToastContainer 
+      position="top-right" 
+      autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop={true}
+      closeOnClick={true}
+      />
       {/* Always show Nav for logged-out users, except on SalesDashboard */}
       {!isSalesDashboard && (
         <Nav
@@ -124,13 +130,6 @@ function App() {
   return (
     <>
       <AppContent />
-      <ToastContainer
-        className="global-toast-container"
-        toastClassName="global-toast"
-        newestOnTop
-        pauseOnHover
-        closeOnClick
-      />
     </>
   );
 }

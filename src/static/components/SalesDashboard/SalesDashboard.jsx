@@ -20,7 +20,7 @@ import {
 import { BiLoaderAlt } from 'react-icons/bi';
 import "./SalesDashboard.css";
 import AncarLogo from "../../../assets/media/AncarLogo.7ad7473b37e000adbeb6.png";
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Modal from 'react-modal';
 
@@ -540,7 +540,6 @@ const PieTooltip = ({ active, payload }) => {
 
   return (
     <div className="sales-dashboard">
-        <ToastContainer position="top-right" />
       {user?.company_position?.toLowerCase() === "owner" && (
         <div style={{ margin: "24px 0 0 0", display: "flex", justifyContent: "flex-start" }}>
           <button
